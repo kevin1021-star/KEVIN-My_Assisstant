@@ -41,5 +41,20 @@ logger = logging.getLogger("J.A.R.V.I.S")
 
 class chatservice:
     """
-    Manage chat 
+    Manage chat sessions: in-memory message lists,load/save to disk, and 
+    calling Groq  (or realtime ) to get replies. All state for active sessions
+    is in self.sessions; saving to disk is done after each message so
+    conversations survive restarts.
     """
+    def __init__(self, groq_service, realtime_service: RealtimeGroqService = None):
+        """store reference to the groq and realtime services; keep sessions in memory."""
+        self.groq_service = groq_service 
+        self.realtime_service = realtime_service
+        #Map: session_id -> list of chatmessages (user and assisstant messages in order).
+        self.sessions: Dict[str, List[chatMessage]] = {}
+
+        #------------------------------------------------------------------------------------
+        # SESSION LOAD/ VALIDATE / GET-OR-CREATE
+        #------------------------------------------------------------------------------------
+        
+        
