@@ -15,7 +15,7 @@ from app.models import ChatMessage, ChatHistory
 from app.services.groq_service import GroqService
 from app.service.realtime_service import RealtimeGroqService
 
-logger = logging.getLogger("J.A.R.V.I.S")
+logger = logging.getLogger("K.E.V.I.N")
 
 class chatservice:
    ersations survive restarts.
