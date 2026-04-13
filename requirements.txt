@@ -16,3 +16,9 @@ rich
 tavily-python
 cohere
 langchain-huggingface
+jinja2
+websockets
+
+AppOpener
+pyautogui
+psutil

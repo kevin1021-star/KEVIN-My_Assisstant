@@ -1,0 +1,250 @@
+:root {
+    --bg-color: #030613;
+    --neon-blue: #00f3ff;
+    --neon-cyan: #00d2ff;
+    --neon-purple: #8a2be2;
+    --neon-red: #ff003c;
+    --text-main: #e0f7fa;
+    --glass-bg: rgba(0, 20, 40, 0.6);
+    --border-glow: 0 0 10px var(--neon-blue), inset 0 0 10px var(--neon-blue);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    background-image: 
+        linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+}
+
+.hud-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+}
+
+/* Header */
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--neon-blue);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-family: 'Orbitron', sans-serif;
+    box-shadow: 0 5px 15px rgba(0, 243, 255, 0.1);
+}
+
+.system-status { display: flex; align-items: center; gap: 10px; }
+.status-indicator {
+    width: 12px; height: 12px; border-radius: 50%;
+}
+.status-indicator.online { background-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+.status-indicator.processing { background-color: var(--neon-purple); box-shadow: 0 0 15px var(--neon-purple); animation: pulse 1s infinite; }
+
+.title { font-size: 1.5rem; letter-spacing: 4px; text-shadow: 0 0 10px var(--neon-blue); }
+
+/* Main Panels */
+.hud-main {
+    display: flex;
+    flex: 1;
+    gap: 20px;
+    overflow: hidden;
+}
+
+.panel {
+    background: var(--glass-bg);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+.left-panel, .right-panel { flex: 1; }
+.center-panel { flex: 2; align-items: center; justify-content: center; position: relative; }
+
+h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    color: var(--neon-cyan);
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px var(--neon-cyan);
+}
+
+/* Core Orb Animation */
+.core-orb {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 243, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.orb-inner {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%);
+    opacity: 0.5;
+    animation: breathe 4s ease-in-out infinite;
+}
+
+.core-orb.listening .orb-inner {
+    background: radial-gradient(circle, var(--neon-blue) 0%, transparent 70%);
+    animation: listen-ripple 0.5s infinite alternate;
+}
+
+.core-orb.processing .orb-inner {
+    background: radial-gradient(circle, var(--neon-purple) 0%, transparent 70%);
+    animation: rotate-pulse 1s linear infinite;
+}
+
+/* Chat Stream */
+.chat-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 5px;
+}
+
+.chat-log::-webkit-scrollbar { width: 4px; }
+.chat-log::-webkit-scrollbar-thumb { background: var(--neon-blue); }
+
+.message {
+    padding: 10px;
+    border-left: 3px solid;
+    background: rgba(255,255,255,0.05);
+    font-size: 1.1rem;
+    animation: slideIn 0.3s ease-out;
+}
+.system-msg { border-color: gray; color: #aaa; font-style: italic; font-size: 0.9rem;}
+.user-msg { border-color: var(--neon-purple); text-align: right; border-left: none; border-right: 3px solid var(--neon-purple); }
+.bot-msg { border-color: var(--neon-cyan); text-shadow: 0 0 2px rgba(0, 243, 255, 0.5); }
+
+/* Controls */
+.controls {
+    position: absolute;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.cyber-btn {
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 1px solid var(--neon-cyan);
+    padding: 10px 30px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    transition: all 0.2s;
+}
+.cyber-btn:hover, .cyber-btn.active {
+    background: var(--neon-cyan);
+    color: var(--bg-color);
+    box-shadow: 0 0 20px var(--neon-cyan);
+}
+.cyber-btn.active {
+    background: var(--neon-red);
+    color: white;
+    box-shadow: 0 0 20px var(--neon-red);
+    border-color: var(--neon-red);
+}
+
+.lang-switch {
+    display: flex;
+    gap: 15px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+}
+
+.voice-status { margin-top: 30px; font-size: 1.2rem; letter-spacing: 1px; color: #888;}
+
+
+/* Telemetry */
+.telemetry-box {
+    margin-top: 20px;
+}
+
+.stat-item {
+    margin-bottom: 12px;
+}
+
+.stat-item span {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.bar-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 100%;
+    width: 0%;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan);
+    transition: width 0.5s ease-in-out, background 0.5s;
+}
+
+.bar.warning { background: orange; box-shadow: 0 0 10px orange; }
+.bar.danger { background: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+
+#gesture-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Animations */
+@keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.1); opacity: 0.6; }
+}
+@keyframes listen-ripple {
+    from { transform: scale(1); opacity: 0.6; }
+    to { transform: scale(1.3); opacity: 0.9; }
+}
+@keyframes rotate-pulse {
+    0% { transform: rotate(0deg) scale(1); opacity: 0.5;}
+    50% { transform: rotate(180deg) scale(1.2); opacity: 1; }
+    100% { transform: rotate(360deg) scale(1); opacity: 0.5; }
+}
+@keyframes blinker { 50% { opacity: 0; } }
+@keyframes slideIn { from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }

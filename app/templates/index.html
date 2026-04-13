@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kevin | AS's Tech Partner</title>
+    <!-- Use Google Fonts for the techy UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="hud-container">
+        <!-- Top Navigation / Status -->
+        <header class="hud-header">
+            <div class="system-status">
+                <span class="status-indicator online"></span>
+                <span>SYSTEM WAKING</span>
+            </div>
+            <div class="title">KEVIN v3.0 | PARTNER PROTOCOL</div>
+            <div class="time-module" id="clock">00:00:00</div>
+        </header>
+
+        <!-- Main Display Area -->
+        <main class="hud-main">
+            <!-- Left Panel (Vision Module Placeholder for Later) -->
+            <aside class="panel left-panel">
+                <h3>EYE OF THE PARTNER</h3>
+                <div class="vision-box" id="vision-box">
+                    <div class="scanner-line"></div>
+                    <p class="blink" id="vision-status">Initializing MediaPipe...</p>
+                    <video id="webcam" autoplay playsinline style="display:none;"></video>
+                    <canvas id="gesture-canvas"></canvas>
+                </div>
+
+                <div class="telemetry-box">
+                    <h3>SYSTEM TELEMETRY</h3>
+                    <div class="stat-item">
+                        <span>CPU</span>
+                        <div class="bar-container"><div class="bar" id="cpu-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="stat-item">
+                        <span>RAM</span>
+                        <div class="bar-container"><div class="bar" id="ram-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="stat-item">
+                        <span>BATTERY</span>
+                        <div class="bar-container"><div class="bar" id="battery-bar" style="width: 0%"></div></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center Panel (Central Core Animation & Voice State) -->
+            <section class="panel center-panel">
+                <div class="core-orb" id="core-orb">
+                   <div class="orb-inner"></div>
+                </div>
+                <div class="voice-status" id="voice-status">Waiting for command...</div>
+                
+                <div class="controls">
+                    <button class="cyber-btn" id="start-btn">ENGAGE MICROPHONE</button>
+                    <!-- Language Toggle -->
+                    <div class="lang-switch">
+                        <label>
+                            <input type="radio" name="lang" value="en-US" checked> ENG
+                        </label>
+                        <label>
+                            <input type="radio" name="lang" value="hi-IN"> HIN
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel (Chat / Output Stream) -->
+            <aside class="panel right-panel">
+                <h3>PARTNER STREAM</h3>
+                <div class="chat-log" id="chat-log">
+                    <div class="message system-msg">Kevin initialized. Waiting for AS.</div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Load the Logic -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

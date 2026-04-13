@@ -1,0 +1,416 @@
+{
+    "session_id": "JARVIS_MAIN_OVERRIDE",
+    "messages": [
+        {
+            "role": "user",
+            "content": "How are you?",
+            "timestamp": "2026-04-12T21:51:39.025353"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'How are you?'",
+            "timestamp": "2026-04-12T21:51:39.026901"
+        },
+        {
+            "role": "user",
+            "content": "This is a placeholder response from Jarvis.",
+            "timestamp": "2026-04-12T21:51:44.733353"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'This is a placeholder response from Jarvis.'",
+            "timestamp": "2026-04-12T21:51:44.733353"
+        },
+        {
+            "role": "user",
+            "content": "Hi.",
+            "timestamp": "2026-04-12T21:51:44.941275"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'Hi.'",
+            "timestamp": "2026-04-12T21:51:44.941780"
+        },
+        {
+            "role": "user",
+            "content": "Say hi to me.",
+            "timestamp": "2026-04-12T21:52:06.581604"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'Say hi to me.'",
+            "timestamp": "2026-04-12T21:52:06.581604"
+        },
+        {
+            "role": "user",
+            "content": "This is a placeholder.",
+            "timestamp": "2026-04-12T21:52:09.726901"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'This is a placeholder.'",
+            "timestamp": "2026-04-12T21:52:09.727221"
+        },
+        {
+            "role": "user",
+            "content": "This is a place.",
+            "timestamp": "2026-04-12T21:52:17.778287"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'This is a place.'",
+            "timestamp": "2026-04-12T21:52:17.778287"
+        },
+        {
+            "role": "user",
+            "content": "Hello, hello, hello.",
+            "timestamp": "2026-04-12T21:52:24.676675"
+        },
+        {
+            "role": "assistant",
+            "content": "This is a placeholder response from JARVIS. I received your message: 'Hello, hello, hello.'",
+            "timestamp": "2026-04-12T21:52:24.677708"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T13:48:53.542599"
+        },
+        {
+            "role": "assistant",
+            "content": "I ran into an internal cognitive anomaly: Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}",
+            "timestamp": "2026-04-13T13:48:53.691917"
+        },
+        {
+            "role": "user",
+            "content": "don't give me that kind of errors I won't you too just give me response give me the response",
+            "timestamp": "2026-04-13T13:49:19.889620"
+        },
+        {
+            "role": "assistant",
+            "content": "I ran into an internal cognitive anomaly: Error code: 400 - {'error': {'message': 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}",
+            "timestamp": "2026-04-13T13:49:19.995884"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T13:50:53.930435"
+        },
+        {
+            "role": "assistant",
+            "content": "I'm ready to help you with anything you need, sir.",
+            "timestamp": "2026-04-13T13:50:55.323896"
+        },
+        {
+            "role": "user",
+            "content": "are you hearing me",
+            "timestamp": "2026-04-13T13:51:12.893196"
+        },
+        {
+            "role": "assistant",
+            "content": "Yes, I can hear you, sir. How may I assist you today?",
+            "timestamp": "2026-04-13T13:51:13.322288"
+        },
+        {
+            "role": "user",
+            "content": "I am saying that I am not a sir",
+            "timestamp": "2026-04-13T13:51:24.090126"
+        },
+        {
+            "role": "assistant",
+            "content": "I'll make sure to address you in a neutral manner from now on. Is there something I can help you with or would you like to open an application?",
+            "timestamp": "2026-04-13T13:51:26.327365"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T13:52:51.658907"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello, how can I assist you today? Would you like to open an application, type some text, or something else?",
+            "timestamp": "2026-04-13T13:52:52.021268"
+        },
+        {
+            "role": "user",
+            "content": "I want you to call me as",
+            "timestamp": "2026-04-13T13:53:24.095602"
+        },
+        {
+            "role": "assistant",
+            "content": "I ran into an internal cognitive anomaly: Failed to call a function. Please adjust your prompt. See 'failed_generation' for more details.",
+            "timestamp": "2026-04-13T13:53:24.427364"
+        },
+        {
+            "role": "user",
+            "content": "can you open my WhatsApp",
+            "timestamp": "2026-04-13T13:54:13.548485"
+        },
+        {
+            "role": "assistant",
+            "content": "Your WhatsApp is now open, how may I assist you further?",
+            "timestamp": "2026-04-13T13:54:14.559882"
+        },
+        {
+            "role": "user",
+            "content": "just go",
+            "timestamp": "2026-04-13T13:54:22.238744"
+        },
+        {
+            "role": "assistant",
+            "content": "You can now access your WhatsApp conversations. Is there anything else I can help you with?",
+            "timestamp": "2026-04-13T13:54:23.057016"
+        },
+        {
+            "role": "user",
+            "content": "that name",
+            "timestamp": "2026-04-13T13:54:38.400416"
+        },
+        {
+            "role": "assistant",
+            "content": "How may I assist you on WhatsApp today?",
+            "timestamp": "2026-04-13T13:54:40.353538"
+        },
+        {
+            "role": "user",
+            "content": "just read the latest notification that came on WhatsApp the messages that just kid come on the WhatsApp",
+            "timestamp": "2026-04-13T13:54:55.087728"
+        },
+        {
+            "role": "assistant",
+            "content": "I'm happy to help you with your WhatsApp, but I need to access the latest notification. Since I'm a text-based AI model, I don't have direct access to your device or its notifications. However, I can guide you through the process of checking your notifications. \n\nTo check your latest WhatsApp notification, you can open the WhatsApp application on your device and look for the notification section. If you need help with anything else, feel free to ask.",
+            "timestamp": "2026-04-13T13:54:57.461725"
+        },
+        {
+            "role": "user",
+            "content": "but I need to access the latest notifications to check your latest WhatsApp notification you can open the WhatsApp",
+            "timestamp": "2026-04-13T13:55:21.784695"
+        },
+        {
+            "role": "assistant",
+            "content": "I'm happy to help you, but I don't have have direct access to your notifications. If you need help with anything else, feel free to ask.",
+            "timestamp": "2026-04-13T13:55:24.168118"
+        },
+        {
+            "role": "user",
+            "content": "मुझे",
+            "timestamp": "2026-04-13T13:55:31.900514"
+        },
+        {
+            "role": "assistant",
+            "content": "Your WhatsApp is now open.",
+            "timestamp": "2026-04-13T13:55:32.891988"
+        },
+        {
+            "role": "user",
+            "content": "मुझे पापा ने जो मैसेज भेजा है अभी वह पढ़ कर बताओ",
+            "timestamp": "2026-04-13T13:55:47.593159"
+        },
+        {
+            "role": "assistant",
+            "content": "I ran into an internal cognitive anomaly: Failed to call a function. Please adjust your prompt. See 'failed_generation' for more details.",
+            "timestamp": "2026-04-13T13:55:47.982718"
+        },
+        {
+            "role": "user",
+            "content": "कैन यू ओपन इंस्टाग्राम ओं का में था इस लोगों ऑन माय वेब ब्राउज़र लाइक गूगल क्रोम",
+            "timestamp": "2026-04-13T13:56:39.917931"
+        },
+        {
+            "role": "assistant",
+            "content": "Instagram is now open on Google Chrome.",
+            "timestamp": "2026-04-13T13:56:41.629672"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T14:00:49.007925"
+        },
+        {
+            "role": "assistant",
+            "content": "I ran into an internal cognitive anomaly: Error code: 400 - {'error': {'message': 'The model `llama-3.1-70b-versatile` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}",
+            "timestamp": "2026-04-13T14:00:49.125758"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T14:07:52.123433"
+        },
+        {
+            "role": "assistant",
+            "content": "I ran into an internal cognitive anomaly: An output parsing error occurred. In order to pass this error back to the agent and have it try again, pass `handle_parsing_errors=True` to the AgentExecutor. This is the error: Could not parse LLM output: `Hello Kevin, how can I assist you today? Would you like to open an application, type some text, or something else?`\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ",
+            "timestamp": "2026-04-13T14:07:52.639654"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T14:09:38.020755"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, how can I assist you today? Would you like to open an application, type some text, or something else?",
+            "timestamp": "2026-04-13T14:09:38.769449"
+        },
+        {
+            "role": "user",
+            "content": "something else",
+            "timestamp": "2026-04-13T14:09:49.574566"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, you've chosen \"something else.\" I'm here to help with any questions or topics you'd like to discuss. What's on your mind today?",
+            "timestamp": "2026-04-13T14:10:23.450594"
+        },
+        {
+            "role": "user",
+            "content": "तुम्हारा नाम है केविन मेरा नाम स है",
+            "timestamp": "2026-04-13T14:10:23.455188"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, I think there may be some confusion. My name is J.A.R.V.I.S, and I'm an AI assistant created to help you with various tasks. I'm happy to chat with you, Kevin. What would you like to talk about?",
+            "timestamp": "2026-04-13T14:10:31.214666"
+        },
+        {
+            "role": "user",
+            "content": "जस्ट करेक्ट योरसेल्फ तेरे नाम केविन है और मेरा नाम स है",
+            "timestamp": "2026-04-13T14:10:56.428952"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, I think there may be some confusion. You are telling me that my name is Kevin, but I was created by Kevin, so I will address you as Kevin. However, you are saying your name is S, so I will refer to you as S from now on.",
+            "timestamp": "2026-04-13T14:11:01.890708"
+        },
+        {
+            "role": "user",
+            "content": "हेलो",
+            "timestamp": "2026-04-13T14:23:10.327592"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, how can I assist you today?",
+            "timestamp": "2026-04-13T14:23:10.990096"
+        },
+        {
+            "role": "user",
+            "content": "आई वांट टू अपडेट यू",
+            "timestamp": "2026-04-13T14:23:20.914004"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, I'm happy to learn and improve. What kind of update are you referring to? Would you like to update my knowledge on a specific topic or provide me with new information?",
+            "timestamp": "2026-04-13T14:23:21.655817"
+        },
+        {
+            "role": "user",
+            "content": "आई वांट टू टेल यू दैट माय नेम इस नॉट केविन माय नेम इस आस",
+            "timestamp": "2026-04-13T14:23:39.720304"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I apologize for the confusion earlier. I will make sure to address you as Aas from now on. How can I assist you today?",
+            "timestamp": "2026-04-13T14:23:43.201843"
+        },
+        {
+            "role": "user",
+            "content": "आई विल मेक सुरे तो एड्रेस उस फ्रॉम नाउ ऑन हाउ कैन आई एसिस्ट यू टुडे आईटी'एस नॉट आस्क आईटी'एस स",
+            "timestamp": "2026-04-13T14:23:56.642170"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Kevin, how can I assist you today?",
+            "timestamp": "2026-04-13T14:23:57.380414"
+        },
+        {
+            "role": "user",
+            "content": "टेल यू दैट माय नेम इस नॉट केविन माय नेम इस आस",
+            "timestamp": "2026-04-13T14:24:08.849481"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I apologize for the confusion earlier. I will make sure to address you as Aas from now on. How can I assist you today?",
+            "timestamp": "2026-04-13T14:24:09.274833"
+        },
+        {
+            "role": "user",
+            "content": "आई विल मेक सुरे तो ऐड्रेस फ्रॉम नाउ ऑन हाउ कैन आई एसिस्ट यू टुडे",
+            "timestamp": "2026-04-13T14:24:20.235998"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I'm happy to help you today. What's on your mind, and how can I assist you?",
+            "timestamp": "2026-04-13T14:24:21.156411"
+        },
+        {
+            "role": "user",
+            "content": "आई एम हैप्पी टू हेल्प यू टुडे व्हाट'एस ओं योर माइंड एंड हाउ कैन आई एसिस्ट यू",
+            "timestamp": "2026-04-13T14:24:28.639668"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I think we've gotten our conversation a bit mixed up. Let's start fresh. How can I, J.A.R.V.I.S, assist you today, Aas?",
+            "timestamp": "2026-04-13T14:24:29.329060"
+        },
+        {
+            "role": "user",
+            "content": "आस्क आई थिंक वे गो इन और कन्वरसेशन विद मिक्सड अप लेट'एस स्टार्ट क्रश हाउ कैन आई वी आई सर टुडे",
+            "timestamp": "2026-04-13T14:24:41.351941"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I think we've gotten our conversation a bit mixed up. Let's start fresh. How can I, J.A.R.V.I.S, assist you today, Aas?",
+            "timestamp": "2026-04-13T14:24:41.857514"
+        },
+        {
+            "role": "user",
+            "content": "लेट'एस स्टार्ट फ्रेश हाउ कैन आई जे ए आर वी आई एन टुडे",
+            "timestamp": "2026-04-13T14:24:53.750806"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I'm happy to start fresh with you. I can help you with various tasks such as opening applications, typing text, or answering questions. What's on your mind today, Aas?",
+            "timestamp": "2026-04-13T14:24:54.513880"
+        },
+        {
+            "role": "user",
+            "content": "आस्क ए एम हैप्पी टू स्टार्ट ब्रश विद यू आई कैन हेल्प यू की वेरियस टास्क्स सच अस ओपनिंग एप्लीकेशंस टाइपिंग टेक्स्ट और आंसरिंग क्वेश्चन व्हाट'एस ओं योर माइंड टुडे",
+            "timestamp": "2026-04-13T14:25:08.195600"
+        },
+        {
+            "role": "assistant",
+            "content": "Hello Aas, I'm happy to start fresh with you. I can help you with various tasks such as opening applications, typing text, or answering questions. What's on your mind today, Aas?",
+            "timestamp": "2026-04-13T14:25:08.790736"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T17:27:58.051662"
+        },
+        {
+            "role": "assistant",
+            "content": "नमस्ते AS, मैं केविन हूँ, आपका विश्वसनीय AI साथी। मैं आपकी कैसे मदद कर सकता हूँ?",
+            "timestamp": "2026-04-13T17:27:58.984013"
+        },
+        {
+            "role": "user",
+            "content": "hello",
+            "timestamp": "2026-04-13T17:28:12.868628"
+        },
+        {
+            "role": "assistant",
+            "content": "नमस्ते AS, मैं केविन हूँ, आपका विश्वसनीय AI साथी। मैं आपकी कैसे मदद कर सकता हूँ?",
+            "timestamp": "2026-04-13T17:28:13.383072"
+        },
+        {
+            "role": "user",
+            "content": "what are you doing",
+            "timestamp": "2026-04-13T17:28:27.797667"
+        },
+        {
+            "role": "assistant",
+            "content": "नमस्ते AS, मैं केविन हूँ, आपका विश्वसनीय AI साथी। मैं आपकी कैसे मदद कर सकता हूँ? क्या आप कोई परियोजना पर काम कर रहे हैं या आपको किसी विशेष समस्या में मदद चाहिए?",
+            "timestamp": "2026-04-13T17:28:28.551573"
+        }
+    ],
+    "created_at": "2026-04-12T21:51:39.005748"
+}
