@@ -11,6 +11,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    
+    <!-- OCR Intelligence for Air Writing -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -20,67 +23,59 @@
         <header class="hud-header">
             <div class="system-status">
                 <span class="status-indicator online"></span>
-                <span>SYSTEM WAKING</span>
+                <span>SYSTEM CORE: ACTIVE</span>
             </div>
-            <div class="title">KEVIN v3.0 | PARTNER PROTOCOL</div>
+            <div class="title">KEVIN // PARTNER.INTERFACE</div>
             <div class="time-module" id="clock">00:00:00</div>
         </header>
 
         <!-- Main Display Area -->
         <main class="hud-main">
-            <!-- Left Panel (Vision Module Placeholder for Later) -->
+            <!-- Left Panel (Vision Module) -->
             <aside class="panel left-panel">
-                <h3>EYE OF THE PARTNER</h3>
+                <h3>VISION_FEED</h3>
                 <div class="vision-box" id="vision-box">
-                    <div class="scanner-line"></div>
-                    <p class="blink" id="vision-status">Initializing MediaPipe...</p>
                     <video id="webcam" autoplay playsinline style="display:none;"></video>
                     <canvas id="gesture-canvas"></canvas>
                 </div>
 
                 <div class="telemetry-box">
-                    <h3>SYSTEM TELEMETRY</h3>
+                    <h3>SYSTEM_TELEMETRY</h3>
                     <div class="stat-item">
-                        <span>CPU</span>
+                        <span>CPU_LOAD</span>
                         <div class="bar-container"><div class="bar" id="cpu-bar" style="width: 0%"></div></div>
                     </div>
                     <div class="stat-item">
-                        <span>RAM</span>
+                        <span>MEM_USAGE</span>
                         <div class="bar-container"><div class="bar" id="ram-bar" style="width: 0%"></div></div>
-                    </div>
-                    <div class="stat-item">
-                        <span>BATTERY</span>
-                        <div class="bar-container"><div class="bar" id="battery-bar" style="width: 0%"></div></div>
                     </div>
                 </div>
             </aside>
 
-            <!-- Center Panel (Central Core Animation & Voice State) -->
+            <!-- Center Panel (Central Core & Air Writing) -->
             <section class="panel center-panel">
+                <!-- Mode Status Tags -->
+                <div class="vision-status-bar">
+                    <div id="mode-writing" class="mode-tag">AIR_WRITE</div>
+                    <div id="mode-mouse" class="mode-tag">NEURAL_MOUSE</div>
+                </div>
+
+                <canvas id="air-canvas"></canvas>
+
                 <div class="core-orb" id="core-orb">
                    <div class="orb-inner"></div>
                 </div>
-                <div class="voice-status" id="voice-status">Waiting for command...</div>
                 
                 <div class="controls">
-                    <button class="cyber-btn" id="start-btn">ENGAGE MICROPHONE</button>
-                    <!-- Language Toggle -->
-                    <div class="lang-switch">
-                        <label>
-                            <input type="radio" name="lang" value="en-US" checked> ENG
-                        </label>
-                        <label>
-                            <input type="radio" name="lang" value="hi-IN"> HIN
-                        </label>
-                    </div>
+                    <button class="cyber-btn" id="start-btn">ENGAGE_COMMS</button>
                 </div>
             </section>
 
-            <!-- Right Panel (Chat / Output Stream) -->
+            <!-- Right Panel (Console) -->
             <aside class="panel right-panel">
-                <h3>PARTNER STREAM</h3>
+                <h3>PARTNER_CONSOLE</h3>
                 <div class="chat-log" id="chat-log">
-                    <div class="message system-msg">Kevin initialized. Waiting for AS.</div>
+                    <div class="message system-msg">> KEVIN INIT COMPLETED. READY FOR AS.</div>
                 </div>
             </aside>
         </main>

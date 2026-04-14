@@ -1,4 +1,5 @@
 import os
+import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -30,44 +31,69 @@ os.makedirs(TEMPLATES_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
+from app.services.gesture_service import GestureService
+
 # Initialize Services
 groq_service = GroqService()
 chat_service = ChatService(groq_service)
+gesture_service = GestureService()
+
+gesture_queue = asyncio.Queue()
+
+async def gesture_processor_task():
+    """Consumes gestures from the queue as fast as possible without blocking main chat."""
+    while True:
+        data = await gesture_queue.get()
+        try:
+            if data.get("mode") == "MOUSE":
+                gesture_service.process_mouse_sync(
+                    data.get("x"), 
+                    data.get("y"), 
+                    data.get("click", False)
+                )
+        except Exception as e:
+            logger.error(f"Gesture processing error: {e}")
+        finally:
+            gesture_queue.task_done()
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(gesture_processor_task())
 
 @app.get("/", response_class=HTMLResponse)
 async def get_dashboard(request: Request):
     """Serves the advanced JARVIS techy HUD."""
     try:
-        # Modern FastAPI/Starlette signature
         return templates.TemplateResponse(request=request, name="index.html")
     except TypeError:
-        # Older FastAPI/Starlette signature
         return templates.TemplateResponse("index.html", {"request": request})
 
 
 async def system_telemetry_pusher(websocket: WebSocket):
-    """Background task to push system metrics to the frontend."""
+    """Background task to push metrics and proactively detect calls (optimized)."""
     try:
+        last_call_check = 0
         while True:
+            # Telemetry every 2 seconds
             cpu = psutil.cpu_percent()
             ram = psutil.virtual_memory().percent
-            battery = psutil.sensors_battery()
-            battery_percent = battery.percent if battery else 100
             
             await websocket.send_json({
                 "type": "telemetry",
                 "cpu": cpu,
                 "ram": ram,
-                "battery": battery_percent
             })
 
-            # Proactive Call Detection for Kevin
-            call_status = detect_whatsapp_call.run("")
-            if "Incoming" in call_status:
-                await websocket.send_json({
-                    "type": "alert",
-                    "message": call_status
-                })
+            # Proactive Call Detection every 10 seconds to reduce CPU burden
+            current_time = asyncio.get_event_loop().time()
+            if current_time - last_call_check > 10:
+                call_status = await asyncio.to_thread(detect_whatsapp_call.run, "")
+                if "Kevin Alert" in call_status or "Incoming" in call_status:
+                    await websocket.send_json({
+                        "type": "alert",
+                        "message": call_status
+                    })
+                last_call_check = current_time
 
             await asyncio.sleep(2)
     except Exception as e:
@@ -83,14 +109,33 @@ async def websocket_chat_endpoint(websocket: WebSocket):
     
     try:
         while True:
-            user_text = await websocket.receive_text()
-            logger.info(f"Received from user: {user_text}")
+            # Handle both text and JSON messages
+            message = await websocket.receive()
             
-            await websocket.send_json({"type": "status", "message": "processing"})
-            response_text = chat_service.process_message(session_id, user_text)
-            await websocket.send_json({"type": "response", "message": response_text})
+            if "text" in message:
+                user_input = message["text"]
+                
+                # Check if it's JSON (gesture sync) or plain text (chat)
+                try:
+                    data = json.loads(user_input)
+                    if data.get("type") == "gesture_sync":
+                        # Put in non-blocking queue
+                        try:
+                            gesture_queue.put_nowait(data)
+                        except asyncio.QueueFull:
+                            pass # Drop packets if too many
+                        continue
+                except json.JSONDecodeError:
+                    # Plain text chat message
+                    user_text = user_input
+                
+                logger.info(f"Received from user: {user_text}")
+                await websocket.send_json({"type": "status", "message": "processing"})
+                response_text = await chat_service.process_message(session_id, user_text)
+                await websocket.send_json({"type": "response", "message": response_text})
             
     except WebSocketDisconnect:
         logger.info("Client disconnected from HUD.")
+        gesture_service.reset()
     finally:
         telemetry_task.cancel()

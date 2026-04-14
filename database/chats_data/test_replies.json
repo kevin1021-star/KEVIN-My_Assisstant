@@ -1,0 +1,46 @@
+{
+  "session_id": "test_replies",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hello",
+      "timestamp": "2026-04-14T19:38:49.727162"
+    },
+    {
+      "role": "assistant",
+      "content": "Namaste AS, kaise ho? Main aapki madad ke liye yahan hoon. Everything looks quiet, so you can focus on your work! What's on your agenda today? Do you need help with any coding, college assignments, or perhaps managing your communications?",
+      "timestamp": "2026-04-14T19:38:53.459792"
+    },
+    {
+      "role": "user",
+      "content": "hello",
+      "timestamp": "2026-04-14T19:50:50.203611"
+    },
+    {
+      "role": "assistant",
+      "content": "Namaste AS, kaise ho? Main aapki madad ke liye yahan hoon. Everything looks quiet, so you can focus on your work! What's on your agenda today? Do you need help with any coding, college assignments, or perhaps managing your communications?",
+      "timestamp": "2026-04-14T19:50:51.000440"
+    },
+    {
+      "role": "user",
+      "content": "hello",
+      "timestamp": "2026-04-14T20:01:30.334146"
+    },
+    {
+      "role": "assistant",
+      "content": "Namaste AS, kaise ho? Main aapki madad ke liye yahan hoon. Everything looks quiet, so you can focus on your work! What's on your agenda today? Do you need help with any coding, college assignments, or perhaps managing your communications?",
+      "timestamp": "2026-04-14T20:01:30.766107"
+    },
+    {
+      "role": "user",
+      "content": "hello",
+      "timestamp": "2026-04-14T22:22:34.399832"
+    },
+    {
+      "role": "assistant",
+      "content": "Main aapke saath hoon, AS. Aapko koi bhi madad chahiye, toh mujhe pata chalega.",
+      "timestamp": "2026-04-14T22:22:35.727003"
+    }
+  ],
+  "created_at": "2026-04-14T22:22:35.727003"
+}

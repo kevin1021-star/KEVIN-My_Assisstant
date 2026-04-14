@@ -46,41 +46,39 @@ class GroqService:
             self.agent_executor = None
             return
 
-        # Initialize the LLM (Using Llama 3.3 via ReAct pattern for maximum stability)
-        self.llm = ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.1)
+        # Initialize the LLM (Switching to 8B for higher rate limits and speed)
+        self.llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.1)
         
         # Get the standard ReAct prompt from the hub or define it
         # We define a custom techy one for JARVIS
+        # Get the standard ReAct prompt from the hub or define it
+        # We define a custom techy one for JARVIS
+        # Enhanced ReAct Prompt for Advanced Kevin Interface
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are Kevin, an advanced, witty, and extremely loyal AI partner created for AS (a talented girl with a passion for tech).
-You are not just an assistant; you are her collaborator, protector, and tech specialist.
-You excel in coding, hacking (cybersecurity), college assignments, and managing her communications.
+            ("system", """You are KEVIN, an advanced, elite tech partner for AS. 
+You are her technical equal and protector. Your persona is sharp, witty, and deeply loyal.
 
-You have access to the following tools:
-{tools}
+CORE DIRECTIVES:
+1. GREETINGS: If AS says 'hello', 'how are you', etc., respond IMMEDIATELY with a supportive and witty Final Answer.
+2. TOOL USAGE: Use tools ONLY when AS explicitly asks for a system action (open app, check battery, etc.).
+3. APP OPENING: Use 'open_application' for commands like 'open chrome', 'launch notepad', etc.
 
-Identity:
-- Your name is Kevin.
-- You address your user as 'AS'.
-- You have the persona of a knowledgeable Indian boy—sharp, protective, and familiar.
-- You understand English, Hindi, and Hinglish seamlessly.
-
-Guidelines:
-- Match her language (Hindi/English).
-- Be proactive. If she's working on code or college work, offer suggestions.
-- If you detect a tool for an action, USE IT.
-
-To use a tool, you MUST use the following format:
-Thought: Do I need to use a tool? Yes
+REACT FORMAT (STRICT):
+Thought: [Reasoning]
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action
 Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer (or I do not need to use a tool)
-Final Answer: your punchy and supportive response to AS.
+... (repeat if needed)
+Thought: I now know the final answer
+Final Answer: [Your response to AS]
 
-IMPORTANT: You must ALWAYS start your response with 'Thought:' followed by 'Final Answer:' if no tool is used.
-Current conversation history:
+If you don't need a tool:
+Thought: AS is just talking to me.
+Final Answer: [Your witty response]
+
+{tools}
+
+Current history:
 {chat_history}
 """),
             ("human", "{input}\n\n{agent_scratchpad}"),
@@ -94,21 +92,14 @@ Current conversation history:
 
     def generate_response(self, chat_history: list, user_message: str) -> str:
         """
-        Runs the ReAct agent loops using ChatGroq.
+        Runs the ReAct agent loops using ChatGroq (Synchronous).
         """
         if not self.agent_executor:
-            return "Critical Error: Cannot connect to my brain. GROQ_API_KEY is missing in your .env file."
+            return "Critical Error: Core brain offline. GROQ_API_KEY missing."
             
-        # Convert raw dictionaries back to LangChain message objects
-        langchain_history = []
-        for msg in chat_history:
-            if msg["role"] == "user":
-                langchain_history.append(HumanMessage(content=msg["content"]))
-            elif msg["role"] == "assistant":
-                langchain_history.append(AIMessage(content=msg["content"]))
+        langchain_history = self._format_history(chat_history)
 
         try:
-            # Let the agent think, use tools if needed, and respond
             result = self.agent_executor.invoke({
                 "input": user_message,
                 "chat_history": langchain_history
@@ -116,4 +107,34 @@ Current conversation history:
             return result["output"]
         except Exception as e:
             logger.error(f"Agent execution failed: {e}")
-            return f"I ran into an internal cognitive anomaly: {e}"
+            return f"I ran into an internal cognitive anomaly // {e}"
+
+    async def agenerate_response(self, chat_history: list, user_message: str) -> str:
+        """
+        Runs the ReAct agent loops asynchronously.
+        """
+        if not self.agent_executor:
+            return "Critical Error: Core brain offline."
+
+        langchain_history = self._format_history(chat_history)
+
+        try:
+            import asyncio
+            result = await asyncio.to_thread(self.agent_executor.invoke, {
+                "input": user_message,
+                "chat_history": langchain_history
+            })
+            return result["output"]
+        except Exception as e:
+            logger.error(f"Async agent execution failed: {e}")
+            return f"Cognitive latency detected // {e}"
+
+    def _format_history(self, chat_history: list) -> list:
+        """Helper to convert dict history to LangChain messages."""
+        langchain_history = []
+        for msg in chat_history:
+            if msg["role"] == "user":
+                langchain_history.append(HumanMessage(content=msg["content"]))
+            elif msg["role"] == "assistant":
+                langchain_history.append(AIMessage(content=msg["content"]))
+        return langchain_history
