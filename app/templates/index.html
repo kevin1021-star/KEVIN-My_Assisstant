@@ -3,85 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kevin | AS's Tech Partner</title>
-    <!-- Use Google Fonts for the techy UI -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    
-    <!-- MediaPipe Hands -->
+    <title>KEVIN | Neural HUD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-    
-    <!-- OCR Intelligence for Air Writing -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root { --p-gap: 20px; }
+        body { height: 100vh; display: flex; flex-direction: column; padding: var(--p-gap); overflow: hidden; }
+        .hud-grid { display: grid; grid-template-columns: 320px 1fr 320px; grid-template-rows: 1fr 140px; gap: var(--p-gap); flex: 1; }
+        .vision-container { grid-column: 2; grid-row: 1 / span 2; position: relative; border: 1px solid var(--cyan-dim); background: #000; overflow: hidden; }
+        #webcam { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+        .chat-container { display: flex; flex-direction: column; height: 100%; }
+        .chat-log { flex: 1; overflow-y: auto; padding: 10px; font-family: var(--mono); font-size: 0.8rem; }
+    </style>
 </head>
 <body>
-    <div class="hud-container">
-        <!-- Top Navigation / Status -->
-        <header class="hud-header">
-            <div class="system-status">
-                <span class="status-indicator online"></span>
-                <span>SYSTEM CORE: ACTIVE</span>
+    <header style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div>
+            <p class="eyebrow">Neural Protocol MK-IV</p>
+            <h1>KEVIN SYSTEM</h1>
+        </div>
+        <div style="text-align: right;">
+            <span id="clock" class="eyebrow" style="font-size: 1.2rem;">00:00:00</span>
+            <div id="connection-pill" class="eyebrow" style="color: var(--alert);">LINK_OFFLINE</div>
+        </div>
+    </header>
+
+    <main class="hud-grid">
+        <!-- Left: Systems -->
+        <aside class="hud-panel" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="tl"></div><div class="tr"></div><div class="bl"></div><div class="br"></div>
+            <p class="eyebrow">Biometric Telemetry</p>
+            <div class="gauge-container">
+                <div style="text-align: center;">
+                    <svg class="gauge-svg"><circle class="gauge-bg" cx="50" cy="50" r="45"></circle><circle id="cpu-gauge" class="gauge-fill" cx="50" cy="50" r="45"></circle></svg>
+                    <p class="eyebrow" id="cpu-value">0%</p>
+                </div>
+                <div style="text-align: center;">
+                    <svg class="gauge-svg"><circle class="gauge-bg" cx="50" cy="50" r="45"></circle><circle id="mem-gauge" class="gauge-fill" cx="50" cy="50" r="45"></circle></svg>
+                    <p class="eyebrow" id="mem-value">0%</p>
+                </div>
             </div>
-            <div class="title">KEVIN // PARTNER.INTERFACE</div>
-            <div class="time-module" id="clock">00:00:00</div>
-        </header>
+            <div style="flex: 1; border-top: 1px solid var(--cyan-dim); padding-top: 10px;">
+                <p class="eyebrow">Active Directives</p>
+                <div id="neural-log" style="font-family: var(--mono); font-size: 0.65rem; color: var(--gold); margin-top: 10px;">INITIALIZING_NEURAL_LINK...</div>
+            </div>
+        </aside>
 
-        <!-- Main Display Area -->
-        <main class="hud-main">
-            <!-- Left Panel (Vision Module) -->
-            <aside class="panel left-panel">
-                <h3>VISION_FEED</h3>
-                <div class="vision-box" id="vision-box">
-                    <video id="webcam" autoplay playsinline style="display:none;"></video>
-                    <canvas id="gesture-canvas"></canvas>
+        <!-- Center: Vision -->
+        <section class="vision-container">
+            <div class="scanline"></div>
+            <video id="webcam" autoplay playsinline muted></video>
+            <canvas id="gesture-canvas" style="position: absolute; inset: 0;"></canvas>
+            
+            <div style="position: absolute; top: 15px; left: 15px;">
+                <span id="mode-badge" class="eyebrow" style="background: var(--cyan); color: #000; padding: 2px 8px;">IDLE</span>
+            </div>
+            <div style="position: absolute; bottom: 15px; right: 15px; text-align: right;">
+                <p id="vision-state" class="eyebrow">HANDS_0</p>
+            </div>
+        </section>
+
+        <!-- Right: Intel -->
+        <aside class="hud-panel chat-container">
+            <div class="tl"></div><div class="tr"></div><div class="bl"></div><div class="br"></div>
+            <p class="eyebrow">Intelligence Feed</p>
+            <div id="chat-log" class="chat-log">
+                <div class="msg system"><span class="role">SYS</span><p>STARK_MK_IV READY.</p></div>
+            </div>
+            <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <textarea id="chat-input" rows="2" placeholder="COMMAND..."></textarea>
+                <div style="display: flex; gap: 5px;">
+                    <button id="mic-btn" class="btn-primary" style="flex: 1;">VOICE</button>
+                    <button id="send-btn" class="btn-primary" style="flex: 1;">EXEC</button>
                 </div>
+            </div>
+        </aside>
 
-                <div class="telemetry-box">
-                    <h3>SYSTEM_TELEMETRY</h3>
-                    <div class="stat-item">
-                        <span>CPU_LOAD</span>
-                        <div class="bar-container"><div class="bar" id="cpu-bar" style="width: 0%"></div></div>
-                    </div>
-                    <div class="stat-item">
-                        <span>MEM_USAGE</span>
-                        <div class="bar-container"><div class="bar" id="ram-bar" style="width: 0%"></div></div>
-                    </div>
-                </div>
-            </aside>
+        <!-- Bottom Left: Shortcuts -->
+        <aside class="hud-panel" style="grid-column: 1;">
+            <div class="tl"></div><div class="tr"></div><div class="bl"></div><div class="br"></div>
+            <p class="eyebrow">Shortcuts</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px;">
+                <button class="btn-primary" style="font-size: 0.6rem;" onclick="socket.send('switch tab')">TAB</button>
+                <button class="btn-primary" style="font-size: 0.6rem;" onclick="socket.send('switch app')">APP</button>
+            </div>
+        </aside>
 
-            <!-- Center Panel (Central Core & Air Writing) -->
-            <section class="panel center-panel">
-                <!-- Mode Status Tags -->
-                <div class="vision-status-bar">
-                    <div id="mode-writing" class="mode-tag">AIR_WRITE</div>
-                    <div id="mode-mouse" class="mode-tag">NEURAL_MOUSE</div>
-                </div>
+        <!-- Bottom Right: Comms -->
+        <aside class="hud-panel" style="grid-column: 3;">
+            <div class="tl"></div><div class="tr"></div><div class="bl"></div><div class="br"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; height: 100%;">
+                <p class="eyebrow">Audio Output</p>
+                <button id="speak-toggle" class="eyebrow" style="background: transparent; border: 1px solid var(--cyan); color: var(--cyan); padding: 5px 10px; cursor: pointer;">ACTIVE</button>
+            </div>
+        </aside>
+    </main>
 
-                <canvas id="air-canvas"></canvas>
-
-                <div class="core-orb" id="core-orb">
-                   <div class="orb-inner"></div>
-                </div>
-                
-                <div class="controls">
-                    <button class="cyber-btn" id="start-btn">ENGAGE_COMMS</button>
-                </div>
-            </section>
-
-            <!-- Right Panel (Console) -->
-            <aside class="panel right-panel">
-                <h3>PARTNER_CONSOLE</h3>
-                <div class="chat-log" id="chat-log">
-                    <div class="message system-msg">> KEVIN INIT COMPLETED. READY FOR AS.</div>
-                </div>
-            </aside>
-        </main>
-    </div>
-
-    <!-- Load the Logic -->
-    <script src="/static/js/main.js"></script>
+    <script src="/static/js/neural_control.js"></script>
 </body>
 </html>

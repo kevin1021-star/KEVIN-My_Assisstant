@@ -1,74 +1,76 @@
-import pywinauto
-from pywinauto import Desktop
-from langchain.tools import tool
+import importlib
 import logging
 
 logger = logging.getLogger("KEVIN-COMMS")
 
-@tool
+def _desktop():
+    try:
+        pywinauto = importlib.import_module("pywinauto")
+        return pywinauto.Desktop(backend="uia")
+    except Exception as exc:
+        logger.warning("pywinauto unavailable: %s", exc)
+        return None
+
+
 def detect_whatsapp_call() -> str:
-    """Scans AS's desktop for any incoming WhatsApp calls. Returns the status."""
+    """Check for incoming WhatsApp calls."""
+    desktop = _desktop()
+    if not desktop:
+        return "Call detection is unavailable because desktop automation dependencies are missing."
+
     try:
-        # Use a more targeted search to avoid full desktop enumeration if possible
-        # However, WhatsApp Desktop often requires UIA. We'll keep UIA but optimize the loop.
-        desktop = Desktop(backend="uia")
-        # Find windows with "WhatsApp" in title directly
-        whatsapp_windows = desktop.windows(title_re=".*WhatsApp.*")
-        
-        for w in whatsapp_windows:
-            title = w.window_text()
+        for window in desktop.windows(title_re=".*WhatsApp.*"):
+            title = window.window_text()
             if "Incoming" in title or "Call" in title:
-                # Extra check for the "Accept" button presence to confirm it's an active incoming call
-                return f"Kevin Alert: AS, you have an incoming WhatsApp call from '{title.split(' - ')[0]}'. Should I answer it?"
-        
-        return "No incoming calls detected right now, AS."
-    except Exception as e:
-        logger.error(f"Error scanning for calls: {e}")
-        return "No incoming calls detected (system scan bypassed)."
+                caller = title.split(" - ")[0]
+                return f"Incoming WhatsApp call detected from {caller}."
+        return "No incoming WhatsApp calls detected."
+    except Exception as exc:
+        logger.error("Call detection failed: %s", exc)
+        return "Call detection failed during the system scan."
 
-@tool
+
 def answer_whatsapp_call() -> str:
-    """Automatically answers an active incoming WhatsApp call. Your proactive partner in action!"""
-    try:
-        desktop = Desktop(backend="uia")
-        whatsapp_windows = desktop.windows(title_re=".*WhatsApp.*")
-        for w in whatsapp_windows:
-            if "Incoming" in w.window_text() or "Call" in w.window_text():
-                # Try to find the 'Accept' or 'Answer' button
-                accept_btn = w.child_window(title="Accept", control_type="Button")
-                if accept_btn.exists():
-                    accept_btn.click()
-                    return "Kevin: Call accepted! I'm on it, AS."
-                
-                accept_btn = w.child_window(title="Answer", control_type="Button")
-                if accept_btn.exists():
-                    accept_btn.click()
-                    return "Kevin: Answered the call for you, AS."
-        
-        return "Kevin: I couldn't find an 'Accept' button to click, AS."
-    except Exception as e:
-        return f"Kevin: Had a glitch trying to answer: {e}"
+    """Answer an incoming WhatsApp call if possible."""
+    desktop = _desktop()
+    if not desktop:
+        return "Call answering is unavailable because desktop automation dependencies are missing."
 
-@tool
-def notify_as_important() -> str:
-    """Scans for important notifications (chats/calls) that might need immediate attention."""
     try:
-        desktop = Desktop(backend="uia")
-        # Targeted search for known communication apps
+        for window in desktop.windows(title_re=".*WhatsApp.*"):
+            title = window.window_text()
+            if "Incoming" not in title and "Call" not in title:
+                continue
+
+            for button_title in ("Accept", "Answer"):
+                button = window.child_window(title=button_title, control_type="Button")
+                if button.exists():
+                    button.click()
+                    return "Answered the WhatsApp call."
+
+        return "I could not find an active incoming WhatsApp call to answer."
+    except Exception as exc:
+        return f"Call answer failed: {exc}"
+
+
+def notify_as_important() -> str:
+    """Check for likely important communication windows."""
+    desktop = _desktop()
+    if not desktop:
+        return "Notification scanning is unavailable because desktop automation dependencies are missing."
+
+    try:
         important = []
-        app_patterns = [".*WhatsApp.*", ".*Telegram.*", ".*Discord.*", ".*Teams.*"]
-        
-        for pattern in app_patterns:
-            windows = desktop.windows(title_re=pattern)
-            for w in windows:
-                t = w.window_text()
-                # Common notification indicators in window titles
-                if "1" in t or "new" in t.lower() or "incoming" in t.lower() or "(" in t:
-                    important.append(t)
-        
+        for pattern in (".*WhatsApp.*", ".*Telegram.*", ".*Discord.*", ".*Teams.*"):
+            for window in desktop.windows(title_re=pattern):
+                title = window.window_text()
+                normalized = title.lower()
+                if "incoming" in normalized or "new" in normalized or "(" in title:
+                    important.append(title)
+
         if important:
-            return f"Kevin: AS, you have some important updates: {', '.join(important)}"
-        return "Everything looks quiet, AS. Focus on your work!"
-    except Exception as e:
-        logger.error(f"Error checking notifications: {e}")
-        return "Everything looks quiet (notification scan bypassed)."
+            return "Important communication activity: " + ", ".join(important[:5])
+        return "No urgent communication windows detected."
+    except Exception as exc:
+        logger.error("Notification scan failed: %s", exc)
+        return "Notification scan failed."

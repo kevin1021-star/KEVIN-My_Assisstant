@@ -1,218 +1,202 @@
-// KEVIN // Advanced Vision & Interface Engine
+const chatLog = document.getElementById("chat-log");
+const chatForm = document.getElementById("chat-form");
+const chatInput = document.getElementById("chat-input");
+const micButton = document.getElementById("mic-btn");
+const speakToggle = document.getElementById("speak-toggle");
+const connectionPill = document.getElementById("connection-pill");
+const heroStatus = document.getElementById("hero-status");
+const heroDetail = document.getElementById("hero-detail");
+const cpuBar = document.getElementById("cpu-bar");
+const ramBar = document.getElementById("ram-bar");
+const cpuValue = document.getElementById("cpu-value");
+const ramValue = document.getElementById("ram-value");
+const modeValue = document.getElementById("mode-value");
+const modeBadge = document.getElementById("mode-badge");
+const featureValue = document.getElementById("feature-value");
+const visionState = document.getElementById("vision-state");
 
-// -- WEBSOCKET SETUP --
-const ws = new WebSocket(`ws://${window.location.host}/ws/chat`);
-const chatLog = document.getElementById('chat-log');
-const coreOrb = document.getElementById('core-orb');
-const statusIndicator = document.querySelector('.status-indicator');
+const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/chat`);
 
-// -- AIR WRITING SETUP --
-const airCanvas = document.getElementById('air-canvas');
-const airCtx = airCanvas.getContext('2d');
-let isWriting = false;
+let speakResponses = false;
+let isListening = false;
+let currentMode = "IDLE";
 let lastPoint = null;
-
-// -- GESTURE STATE --
-let currentMode = 'NONE'; // 'NONE', 'WRITING', 'MOUSE'
-const modeTags = {
-    WRITING: document.getElementById('mode-writing'),
-    MOUSE: document.getElementById('mode-mouse')
-};
-
-// -- NEURAL MOUSE TUNING --
 let lastMousePos = { x: 0.5, y: 0.5 };
-const smoothing = 0.2; // 0.2 = Very Snappy (User request)
 let lastSentTime = 0;
-const sendIntervalMs = 50; // Throttle to 20fps for reliability
-
-// -- TAP DETECTION (OPTION B) --
 let lastIndexZ = 0;
 let tapCooldown = 0;
 
-// -- SPEECH RECOGNITION --
+const airCanvas = document.getElementById("air-canvas");
+const gestureCanvas = document.getElementById("gesture-canvas");
+const videoElement = document.getElementById("webcam");
+const airCtx = airCanvas.getContext("2d");
+const gestureCtx = gestureCanvas.getContext("2d");
+const sendIntervalMs = 50;
+const smoothing = 0.2;
+
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition;
-let isListening = false;
+let recognition = null;
+
+function syncClock() {
+    document.getElementById("clock").textContent = new Date().toLocaleTimeString("en-IN", { hour12: false });
+}
+
+function setConnectionState(label, connected) {
+    connectionPill.textContent = label;
+    connectionPill.classList.toggle("online", connected);
+    connectionPill.classList.toggle("offline", !connected);
+}
+
+function appendMessage(role, text) {
+    const card = document.createElement("article");
+    card.className = `message ${role}`;
+    card.innerHTML = `<span class="message-role">${role.toUpperCase()}</span><p></p>`;
+    card.querySelector("p").textContent = text;
+    chatLog.appendChild(card);
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function sendMessage(text) {
+    const trimmed = text.trim();
+    if (!trimmed || socket.readyState !== WebSocket.OPEN) {
+        return;
+    }
+
+    appendMessage("user", trimmed);
+    socket.send(trimmed);
+    heroStatus.textContent = "Working on your request";
+    heroDetail.textContent = trimmed;
+}
+
+function updateTelemetry(cpu, ram) {
+    cpuValue.textContent = `${cpu}%`;
+    ramValue.textContent = `${ram}%`;
+    cpuBar.style.width = `${cpu}%`;
+    ramBar.style.width = `${ram}%`;
+}
+
+function updateMode(mode) {
+    if (currentMode === "AIR_WRITE" && mode !== "AIR_WRITE") {
+        processAirScript();
+    }
+
+    currentMode = mode;
+    modeValue.textContent = mode.replace("_", " ");
+    modeBadge.textContent = mode;
+}
+
+function speakText(text) {
+    if (!speakResponses || !window.speechSynthesis) {
+        return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.02;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+}
+
+socket.addEventListener("open", () => {
+    setConnectionState("Connected", true);
+    heroStatus.textContent = "Ready for commands";
+    heroDetail.textContent = "Use text, voice, or gestures to interact.";
+});
+
+socket.addEventListener("close", () => {
+    setConnectionState("Disconnected", false);
+    heroStatus.textContent = "Connection closed";
+    heroDetail.textContent = "Refresh the page to reconnect.";
+});
+
+socket.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "telemetry") {
+        updateTelemetry(data.cpu, data.ram);
+        return;
+    }
+
+    if (data.type === "status") {
+        heroStatus.textContent = "Processing";
+        heroDetail.textContent = data.message;
+        return;
+    }
+
+    if (data.type === "response" || data.type === "alert") {
+        appendMessage("assistant", data.message);
+        heroStatus.textContent = data.type === "alert" ? "Attention needed" : "Response ready";
+        heroDetail.textContent = data.message;
+        featureValue.textContent = data.type === "alert" ? "Alert mode" : "Chat Ready";
+        speakText(data.message);
+    }
+});
+
+chatForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    sendMessage(chatInput.value);
+    chatInput.value = "";
+});
+
+document.querySelectorAll(".quick-action").forEach((button) => {
+    button.addEventListener("click", () => sendMessage(button.dataset.message || ""));
+});
+
+speakToggle.addEventListener("click", () => {
+    speakResponses = !speakResponses;
+    speakToggle.textContent = speakResponses ? "Voice On" : "Voice Off";
+});
 
 if (SpeechRecognition) {
     recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[event.resultIndex][0].transcript;
-        appendMessage('user', transcript);
-        if(ws.readyState === WebSocket.OPEN) ws.send(transcript);
-    };
+    recognition.lang = "en-US";
 
     recognition.onstart = () => {
         isListening = true;
-        document.getElementById('start-btn').classList.add('active');
-        coreOrb.classList.add('listening');
+        micButton.textContent = "Stop Voice";
+        heroStatus.textContent = "Listening";
+        heroDetail.textContent = "Speech recognition is active.";
     };
 
     recognition.onend = () => {
-        if(isListening) recognition.start();
-        else {
-            coreOrb.classList.remove('listening');
-            document.getElementById('start-btn').classList.remove('active');
+        if (isListening) {
+            recognition.start();
+            return;
         }
+        micButton.textContent = "Start Voice";
     };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[event.resultIndex][0].transcript;
+        sendMessage(transcript);
+    };
+
+    micButton.addEventListener("click", () => {
+        if (isListening) {
+            isListening = false;
+            recognition.stop();
+            return;
+        }
+        recognition.start();
+    });
+} else {
+    micButton.disabled = true;
+    micButton.textContent = "Voice Unsupported";
 }
 
-document.getElementById('start-btn').addEventListener('click', () => {
-    if(!recognition) return;
-    if(isListening) { isListening = false; recognition.stop(); }
-    else recognition.start();
-});
-
-
-// -- WEBSOCKET HANDLING --
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    
-    if (data.type === 'telemetry') {
-        updateBar('cpu-bar', data.cpu);
-        updateBar('ram-bar', data.ram);
-    } 
-    else if (data.type === 'status') {
-        coreOrb.className = "core-orb processing";
-    } 
-    else if (data.type === 'response' || data.type === 'alert') {
-        coreOrb.className = "core-orb";
-        appendMessage('bot', data.message);
-        speakText(data.message);
+function resizeVisionCanvases() {
+    const width = gestureCanvas.clientWidth;
+    const height = gestureCanvas.clientHeight;
+    if (!width || !height) {
+        return;
     }
-};
 
-function appendMessage(sender, text) {
-    const div = document.createElement('div');
-    const label = sender === 'bot' ? 'KEVIN' : (sender === 'user' ? 'AS' : 'SYSTEM');
-    div.className = `message ${sender}-msg`;
-    div.innerHTML = `<strong>${label} //</strong> ${text}`;
-    chatLog.appendChild(div);
-    chatLog.scrollTop = chatLog.scrollHeight;
-}
-
-function speakText(text) {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.pitch = 1.1; utterance.rate = 1.05;
-    synth.speak(utterance);
-}
-
-// -- MEDIAPIPE HANDS ENGINE --
-const videoElement = document.getElementById('webcam');
-const canvasElement = document.getElementById('gesture-canvas');
-const canvasCtx = canvasElement.getContext('2d');
-
-const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
-hands.onResults(onHandResults);
-
-const camera = new Camera(videoElement, {
-  onFrame: async () => { await hands.send({image: videoElement}); },
-  width: 640, height: 480
-});
-camera.start();
-
-function onHandResults(results) {
-    // Resize canvases to match UI
-    [canvasElement, airCanvas].forEach(c => {
-        if (c.width !== c.clientWidth || c.height !== c.clientHeight) {
-            c.width = c.clientWidth; c.height = c.clientHeight;
+    [gestureCanvas, airCanvas].forEach((canvas) => {
+        if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
         }
     });
-
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const landmarks = results.multiHandLandmarks[0];
-        
-        // Render techy skeleton
-        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00f3ff', lineWidth: 1});
-        drawLandmarks(canvasCtx, landmarks, {color: '#ff003c', radius: 1});
-
-        processGestures(landmarks);
-    } else {
-        updateMode('NONE');
-        lastPoint = null;
-    }
-    canvasCtx.restore();
-}
-
-function processGestures(lm) {
-    // Pinch Detectors (Thumb Tip: 4, Index Tip: 8, Middle Tip: 12)
-    const indexPinchDist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
-    const middlePinchDist = Math.hypot(lm[4].x - lm[12].x, lm[4].y - lm[12].y);
-    const threshold = 0.05;
-
-    if (indexPinchDist < threshold) {
-        updateMode('WRITING');
-        handleAirWriting(lm[8]);
-    } else if (middlePinchDist < threshold) {
-        updateMode('MOUSE');
-        handleNeuralMouse(lm[12], lm[8]); // Middle for move, Index for tap detection
-    } else {
-        updateMode('NONE');
-        lastPoint = null;
-    }
-}
-
-function updateMode(mode) {
-    if (currentMode === mode) return;
-    
-    // If we were writing and just stopped, process the script
-    if (currentMode === 'WRITING') {
-        processAirScript();
-    }
-
-    currentMode = mode;
-    Object.keys(modeTags).forEach(k => modeTags[k].classList.remove('active'));
-    if (modeTags[mode]) modeTags[mode].classList.add('active');
-}
-
-async function processAirScript() {
-    const scriptTag = modeTags['WRITING'];
-    scriptTag.textContent = "ANALYZING...";
-    scriptTag.classList.add('active');
-
-    try {
-        // Create an OCR-friendly version (Black on White)
-        const ocrCanvas = document.createElement('canvas');
-        ocrCanvas.width = airCanvas.width;
-        ocrCanvas.height = airCanvas.height;
-        const ocrCtx = ocrCanvas.getContext('2d');
-        
-        // 1. White Background
-        ocrCtx.fillStyle = 'white';
-        ocrCtx.fillRect(0, 0, ocrCanvas.width, ocrCanvas.height);
-        
-        // 2. Invert lines to Black
-        ocrCtx.globalCompositeOperation = 'difference';
-        ocrCtx.drawImage(airCanvas, 0, 0);
-        
-        // 3. Simple thresholding if needed (optional)
-        
-        // Run OCR
-        const { data: { text } } = await Tesseract.recognize(ocrCanvas, 'eng');
-        const cleanText = text.trim().replace(/\n/g, ' ');
-        
-        if (cleanText.length > 1) {
-            appendMessage('system', `DETECTION: "${cleanText}"`);
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(cleanText);
-            }
-        }
-    } catch (e) {
-        console.error("OCR Error:", e);
-    } finally {
-        scriptTag.textContent = "AIR_WRITE";
-        airCtx.clearRect(0, 0, airCanvas.width, airCanvas.height);
-        lastPoint = null;
-    }
 }
 
 function handleAirWriting(point) {
@@ -221,59 +205,140 @@ function handleAirWriting(point) {
 
     if (lastPoint) {
         airCtx.beginPath();
-        airCtx.strokeStyle = '#00f3ff';
-        airCtx.lineWidth = 3;
-        airCtx.lineCap = 'round';
+        airCtx.strokeStyle = "#8bf7d4";
+        airCtx.lineWidth = 4;
+        airCtx.lineCap = "round";
         airCtx.moveTo(lastPoint.x, lastPoint.y);
         airCtx.lineTo(x, y);
         airCtx.stroke();
     }
+
     lastPoint = { x, y };
 }
 
 function handleNeuralMouse(controlPoint, indexPoint) {
     const now = Date.now();
-    
-    // Smooth movement
     lastMousePos.x = lastMousePos.x * smoothing + controlPoint.x * (1 - smoothing);
     lastMousePos.y = lastMousePos.y * smoothing + controlPoint.y * (1 - smoothing);
 
-    // Tap Detection (Option B) - Detection of sudden 'thrust' in Z-axis
     let click = false;
     const zDelta = lastIndexZ - indexPoint.z;
     if (zDelta > 0.06 && tapCooldown <= 0) {
         click = true;
         tapCooldown = 8;
-        triggerUIFlash();
     }
-    lastIndexZ = indexPoint.z;
-    if (tapCooldown > 0) tapCooldown--;
 
-    // Send to Backend (Throttled)
-    if (ws.readyState === WebSocket.OPEN && (now - lastSentTime > sendIntervalMs || click)) {
-        ws.send(JSON.stringify({
-            type: 'gesture_sync',
-            mode: 'MOUSE',
+    lastIndexZ = indexPoint.z;
+    if (tapCooldown > 0) {
+        tapCooldown -= 1;
+    }
+
+    if (socket.readyState === WebSocket.OPEN && (now - lastSentTime > sendIntervalMs || click)) {
+        socket.send(JSON.stringify({
+            type: "gesture_sync",
+            mode: "MOUSE",
             x: lastMousePos.x,
             y: lastMousePos.y,
-            click: click
+            click,
         }));
         lastSentTime = now;
     }
 }
 
-function triggerUIFlash() {
-    coreOrb.style.boxShadow = '0 0 50px #ff003c';
-    setTimeout(() => { coreOrb.style.boxShadow = ''; }, 100);
+async function processAirScript() {
+    if (!lastPoint) {
+        return;
+    }
+
+    heroStatus.textContent = "Reading air script";
+    heroDetail.textContent = "Running OCR on your gesture strokes.";
+
+    try {
+        const ocrCanvas = document.createElement("canvas");
+        ocrCanvas.width = airCanvas.width;
+        ocrCanvas.height = airCanvas.height;
+        const ocrCtx = ocrCanvas.getContext("2d");
+        ocrCtx.fillStyle = "white";
+        ocrCtx.fillRect(0, 0, ocrCanvas.width, ocrCanvas.height);
+        ocrCtx.globalCompositeOperation = "difference";
+        ocrCtx.drawImage(airCanvas, 0, 0);
+
+        const result = await Tesseract.recognize(ocrCanvas, "eng");
+        const cleanText = result.data.text.trim().replace(/\n/g, " ");
+        if (cleanText.length > 1) {
+            sendMessage(cleanText);
+        }
+    } catch (error) {
+        appendMessage("system", `OCR failed: ${error}`);
+    } finally {
+        airCtx.clearRect(0, 0, airCanvas.width, airCanvas.height);
+        lastPoint = null;
+    }
 }
 
-function updateBar(id, value) {
-    const bar = document.getElementById(id);
-    if (bar) bar.style.width = `${value}%`;
+function initVision() {
+    if (!window.Hands || !window.Camera) {
+        visionState.textContent = "Vision libraries unavailable";
+        return;
+    }
+
+    resizeVisionCanvases();
+    window.addEventListener("resize", resizeVisionCanvases);
+
+    const hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+    });
+
+    hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7,
+    });
+
+    hands.onResults((results) => {
+        resizeVisionCanvases();
+        gestureCtx.save();
+        gestureCtx.clearRect(0, 0, gestureCanvas.width, gestureCanvas.height);
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length) {
+            const lm = results.multiHandLandmarks[0];
+            drawConnectors(gestureCtx, lm, HAND_CONNECTIONS, { color: "#7dd3fc", lineWidth: 2 });
+            drawLandmarks(gestureCtx, lm, { color: "#f97316", lineWidth: 1, radius: 2 });
+
+            const indexPinchDist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+            const middlePinchDist = Math.hypot(lm[4].x - lm[12].x, lm[4].y - lm[12].y);
+
+            if (indexPinchDist < 0.05) {
+                updateMode("AIR_WRITE");
+                handleAirWriting(lm[8]);
+            } else if (middlePinchDist < 0.05) {
+                updateMode("NEURAL_MOUSE");
+                handleNeuralMouse(lm[12], lm[8]);
+            } else {
+                updateMode("IDLE");
+                lastPoint = null;
+            }
+            visionState.textContent = "Camera active";
+        } else {
+            updateMode("IDLE");
+            visionState.textContent = "Hand not detected";
+        }
+
+        gestureCtx.restore();
+    });
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => hands.send({ image: videoElement }),
+        width: 640,
+        height: 480,
+    });
+
+    camera.start().catch((error) => {
+        visionState.textContent = `Camera blocked: ${error}`;
+    });
 }
 
-// Clock 
-setInterval(() => {
-    const now = new Date();
-    document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {hour12: false});
-}, 1000);
+syncClock();
+setInterval(syncClock, 1000);
+initVision();

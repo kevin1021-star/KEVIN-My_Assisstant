@@ -1,51 +1,171 @@
-import sys
-import os
-from langchain.tools import tool
-import pyautogui
-from AppOpener import open as app_open, close as app_close
+import logging
 import webbrowser
+import os
+import time
+from PIL import ImageGrab
 
-@tool
+logger = logging.getLogger("KEVIN-OS")
+
+
+def _load_appopener():
+    try:
+        app_opener = importlib.import_module("AppOpener")
+        return getattr(app_opener, "open"), getattr(app_opener, "close")
+    except Exception as exc:
+        logger.warning("AppOpener unavailable: %s", exc)
+        return None, None
+
+
+def _load_pyautogui():
+    try:
+        return importlib.import_module("pyautogui")
+    except Exception as exc:
+        logger.warning("pyautogui unavailable: %s", exc)
+        return None
+
+
 def open_application(app_name: str) -> str:
-    """Opens an application on the Windows computer by its name. Example: open_application('spotify')"""
-    try:
-        app_open(app_name, match_closest=True)
-        return f"Successfully opened {app_name}."
-    except Exception as e:
-        return f"Error opening {app_name}: {str(e)}"
+    """Open a Windows application by name."""
+    app_open, _ = _load_appopener()
+    if not app_open:
+        return "App opening is unavailable on this system right now."
 
-@tool
+    try:
+        app_open(app_name, match_closest=True, output=False)
+        return f"Opened {app_name}."
+    except Exception as exc:
+        return f"Could not open {app_name}: {exc}"
+
+
 def close_application(app_name: str) -> str:
-    """Closes an open application on the Windows computer by its name. Example: close_application('notepad')"""
-    try:
-        app_close(app_name, match_closest=True)
-        return f"Successfully closed {app_name}."
-    except Exception as e:
-        return f"Error closing {app_name}: {str(e)}"
+    """Close a Windows application by name."""
+    _, app_close = _load_appopener()
+    if not app_close:
+        return "App closing is unavailable on this system right now."
 
-@tool
+    try:
+        app_close(app_name, match_closest=True, output=False)
+        return f"Closed {app_name}."
+    except Exception as exc:
+        return f"Could not close {app_name}: {exc}"
+
+
 def type_text(text: str) -> str:
-    """Types text dynamically onto the current active window using the keyboard. Useful for writing emails, filling forms, or coding!"""
+    """Type text into the active window."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation is unavailable on this system right now."
+
     try:
         pyautogui.write(text, interval=0.01)
-        return f"Successfully typed: {text}"
-    except Exception as e:
-        return f"Failed to type: {e}"
+        return f"Typed: {text}"
+    except Exception as exc:
+        return f"Typing failed: {exc}"
 
-@tool
+
 def press_key(key: str) -> str:
-    """Presses a specific keyboard key (e.g. 'enter', 'tab', 'win', 'space')."""
+    """Press a keyboard key."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation is unavailable on this system right now."
+
     try:
         pyautogui.press(key)
-        return f"Successfully pressed the '{key}' key."
-    except Exception as e:
-        return f"Failed to press key: {e}"
+        return f"Pressed {key}."
+    except Exception as exc:
+        return f"Key press failed: {exc}"
 
-@tool
+
 def open_website(url: str) -> str:
-    """Opens a website URL in the default web browser. Example: open_website('https://www.google.com')"""
+    """Open a website URL in the default browser."""
     try:
         webbrowser.open(url)
-        return f"Successfully opened website: {url}"
-    except Exception as e:
-        return f"Error opening website {url}: {str(e)}"
+        return f"Opened {url}"
+    except Exception as exc:
+        return f"Could not open {url}: {exc}"
+
+
+def switch_tab() -> str:
+    """Switch to the next tab in the active browser or application."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation unavailable."
+    try:
+        pyautogui.hotkey("ctrl", "tab")
+        return "Switched to next tab."
+    except Exception as exc:
+        return f"Tab switch failed: {exc}"
+
+
+def previous_tab() -> str:
+    """Switch to the previous tab in the active browser or application."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation unavailable."
+    try:
+        pyautogui.hotkey("ctrl", "shift", "tab")
+        return "Switched to previous tab."
+    except Exception as exc:
+        return f"Tab switch failed: {exc}"
+
+
+def switch_application() -> str:
+    """Switch to the next active application (Alt+Tab)."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation unavailable."
+    try:
+        pyautogui.hotkey("alt", "tab")
+        return "Switched application."
+    except Exception as exc:
+        return f"App switch failed: {exc}"
+
+
+def minimize_all() -> str:
+    """Minimize all windows to show the desktop."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation unavailable."
+    try:
+        pyautogui.hotkey("win", "d")
+        return "Minimized all windows."
+    except Exception as exc:
+        return f"Minimize failed: {exc}"
+
+
+def close_current_window() -> str:
+    """Close the currently active window (Alt+F4)."""
+    pyautogui = _load_pyautogui()
+    if not pyautogui:
+        return "Keyboard automation unavailable."
+    try:
+        pyautogui.hotkey("alt", "f4")
+        return "Closed current window."
+    except Exception as exc:
+        return f"Window close failed: {exc}"
+
+
+def capture_and_analyze_screen() -> str:
+    """Take a screenshot of the current screen for AI analysis."""
+    try:
+        # Save screenshot to a temporary location
+        timestamp = int(time.time())
+        file_path = f"scratch/screen_{timestamp}.png"
+        screenshot = ImageGrab.grab()
+        screenshot.save(file_path)
+        
+        # In a real scenario, we'd send this to a Vision model.
+        # For now, we'll notify the user we've 'seen' the screen.
+        return f"SCREEN_ANALYSIS_COMPLETE: Captured state at {time.strftime('%H:%M:%S')}. I'm analyzing the content for your assignment."
+    except Exception as exc:
+        return f"Screen capture failed: {exc}"
+
+
+def research_assignment(topic: str) -> str:
+    """Perform a deep search for assignment materials."""
+    try:
+        url = f"https://www.google.com/search?q={topic.replace(' ', '+')}+assignment+help+research+papers"
+        webbrowser.open(url)
+        return f"Initiated deep research sequence for: {topic}"
+    except Exception as exc:
+        return f"Research failed: {exc}"

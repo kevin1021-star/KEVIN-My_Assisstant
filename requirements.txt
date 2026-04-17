@@ -22,3 +22,6 @@ websockets
 AppOpener
 pyautogui
 psutil
+pywinauto
+pywin32
+comtypes

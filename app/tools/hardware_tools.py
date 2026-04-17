@@ -1,8 +1,6 @@
 import psutil
-from langchain.tools import tool
 import os
 
-@tool
 def get_system_battery() -> str:
     """Returns the current battery percentage and whether it is plugged in."""
     try:
@@ -15,7 +13,6 @@ def get_system_battery() -> str:
     except Exception as e:
         return f"Error fetching battery status: {e}"
 
-@tool
 def set_system_volume(level: int) -> str:
     """Sets the master system volume. Level should be between 0 and 100."""
     try:
@@ -23,7 +20,7 @@ def set_system_volume(level: int) -> str:
         # But we can use pyautogui for a simple relative control if nircmd isn't there
         # For a truly 'advanced' feel, we'll use 'sound_control' script or PowerShell
         # Using PowerShell for Windows volume control
-        level = max(0, min(100, level))
+        level = max(0, min(100, int(level)))
         # This PS command sets the volume. Note: standard PS doesn't have a direct 'set volume'
         # so we often use a small helper or specialized COM objects.
         # Simplified for now using a common trick:

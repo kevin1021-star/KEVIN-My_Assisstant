@@ -38,7 +38,7 @@ groq_service = GroqService()
 chat_service = ChatService(groq_service)
 gesture_service = GestureService()
 
-gesture_queue = asyncio.Queue()
+gesture_queue = asyncio.Queue(maxsize=32)
 
 async def gesture_processor_task():
     """Consumes gestures from the queue as fast as possible without blocking main chat."""
@@ -47,9 +47,12 @@ async def gesture_processor_task():
         try:
             if data.get("mode") == "MOUSE":
                 gesture_service.process_mouse_sync(
-                    data.get("x"), 
-                    data.get("y"), 
-                    data.get("click", False)
+                    data.get("x"),
+                    data.get("y"),
+                    data.get("click", False),
+                    data.get("right_click", False),
+                    data.get("drag", False),
+                    data.get("scroll_delta", 0.0),
                 )
         except Exception as e:
             logger.error(f"Gesture processing error: {e}")
@@ -67,6 +70,15 @@ async def get_dashboard(request: Request):
         return templates.TemplateResponse(request=request, name="index.html")
     except TypeError:
         return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "ok",
+        "groq_configured": bool(os.environ.get("GROQ_API_KEY")),
+        "telemetry": True,
+    }
 
 
 async def system_telemetry_pusher(websocket: WebSocket):
@@ -87,8 +99,8 @@ async def system_telemetry_pusher(websocket: WebSocket):
             # Proactive Call Detection every 10 seconds to reduce CPU burden
             current_time = asyncio.get_event_loop().time()
             if current_time - last_call_check > 10:
-                call_status = await asyncio.to_thread(detect_whatsapp_call.run, "")
-                if "Kevin Alert" in call_status or "Incoming" in call_status:
+                call_status = await asyncio.to_thread(detect_whatsapp_call)
+                if "Incoming" in call_status:
                     await websocket.send_json({
                         "type": "alert",
                         "message": call_status
@@ -110,32 +122,49 @@ async def websocket_chat_endpoint(websocket: WebSocket):
     try:
         while True:
             # Handle both text and JSON messages
-            message = await websocket.receive()
+            try:
+                message = await websocket.receive()
+            except RuntimeError:
+                break
             
             if "text" in message:
                 user_input = message["text"]
                 
-                # Check if it's JSON (gesture sync) or plain text (chat)
+                # Check if it's JSON
                 try:
                     data = json.loads(user_input)
-                    if data.get("type") == "gesture_sync":
+                    if data.get("type") == "gesture":
                         # Put in non-blocking queue
                         try:
-                            gesture_queue.put_nowait(data)
+                            # Map to old internal format for processor_task
+                            processed_data = {
+                                "mode": "MOUSE",
+                                "x": data.get("x"),
+                                "y": data.get("y"),
+                                "click": data.get("action") == "click",
+                                "right_click": data.get("action") == "right_click"
+                            }
+                            gesture_queue.put_nowait(processed_data)
                         except asyncio.QueueFull:
-                            pass # Drop packets if too many
+                            pass 
                         continue
                 except json.JSONDecodeError:
-                    # Plain text chat message
                     user_text = user_input
                 
-                logger.info(f"Received from user: {user_text}")
-                await websocket.send_json({"type": "status", "message": "processing"})
+                user_text = user_text.strip()
+                if not user_text:
+                    continue
+
+                logger.info(f"Received directive: {user_text}")
                 response_text = await chat_service.process_message(session_id, user_text)
-                await websocket.send_json({"type": "response", "message": response_text})
+                await websocket.send_json({
+                    "type": "chat",
+                    "content": response_text
+                })
             
     except WebSocketDisconnect:
         logger.info("Client disconnected from HUD.")
         gesture_service.reset()
     finally:
         telemetry_task.cancel()
+        gesture_service.reset()

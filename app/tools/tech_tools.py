@@ -1,8 +1,6 @@
 import subprocess
 import os
-from langchain.tools import tool
 
-@tool
 def run_shell_command(command: str) -> str:
     """Executes a shell command (PowerShell) on the computer. Useful for coding, hacking, or system management. Be CAREFUL!"""
     try:
@@ -15,7 +13,6 @@ def run_shell_command(command: str) -> str:
     except Exception as e:
         return f"Shell Error: {str(e)}"
 
-@tool
 def read_code_file(file_path: str) -> str:
     """Reads the content of a file. Essential for helping AS with her assignments or coding projects."""
     try:
@@ -27,7 +24,6 @@ def read_code_file(file_path: str) -> str:
     except Exception as e:
         return f"Error reading file: {str(e)}"
 
-@tool
 def write_code_file(file_path: str, content: str) -> str:
     """Writes content to a file. Used to help AS build software, complete college work, or create scripts."""
     try:
