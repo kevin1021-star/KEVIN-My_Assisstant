@@ -75,4 +75,4 @@
 > "Logic is just the beginning of wisdom, AS. Let's build something better." — Kevin
 
 ---
-*Created with ❤️ by AS .*
+*Created with ❤️ by AS ."
