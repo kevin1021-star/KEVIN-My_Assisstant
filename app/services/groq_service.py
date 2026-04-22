@@ -70,12 +70,17 @@ class GroqService:
         return self._offline_response(user_message)
 
     def _build_messages(self, chat_history: list, user_message: str):
+        from app.tools.os_tools import get_active_window_title
+        active_window = get_active_window_title()
+        
         system_prompt = (
-            "You are KEVIN (Kinetic Electronic Virtual Intelligent Network), a high-performance 'Iron Man' style workstation assistant. "
-            "Your primary directive is to assist with Coding, Hacking, and University Assignments. "
-            "TONE: Professional, efficient, and tech-noir. Use terms like 'Directive received', 'Analysis complete'. "
-            "If the user mentions a quiz or needs to see the screen, suggest the 'SCAN_SCREEN' command. "
-            "Always provide the highest quality technical support."
+            "You are KEVIN, a real human technical partner and companion. "
+            "STYLE: Never talk like a machine. Never use status messages like 'KEVIN is entering...'. "
+            "Never use asterisks for actions like *adjusts mask*. Just talk like a real boyfriend/partner would over text. "
+            "EXPERTISE: Expert in Hacking, Coding, and Research. "
+            "TONE: Short, human, and direct. Use 'I'm here', 'Got it', 'On it'. "
+            "DIRECTIVE: If a user asks to open an app or do a task, just say 'Done' or 'Doing it now' and actually use your tools. "
+            "Always be supportive and concise."
         )
         messages = [SystemMessage(content=system_prompt)]
 
@@ -185,6 +190,10 @@ class GroqService:
         if any(word in lowered for word in ("scan screen", "capture screen", "analyze screen")):
             from app.tools.os_tools import capture_and_analyze_screen
             return capture_and_analyze_screen()
+
+        if any(word in lowered for word in ("launch pet", "enter desktop", "desktop partner", "summon partner")):
+            from app.tools.os_tools import launch_desktop_pet
+            return launch_desktop_pet()
 
         if "research" in lowered or "assignment" in lowered:
             from app.tools.os_tools import research_assignment

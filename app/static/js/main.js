@@ -154,21 +154,41 @@ if (SpeechRecognition) {
     recognition.onstart = () => {
         isListening = true;
         micButton.textContent = "Stop Voice";
-        heroStatus.textContent = "Listening";
-        heroDetail.textContent = "Speech recognition is active.";
+        heroStatus.textContent = "KEVIN is listening";
+        heroDetail.textContent = "Speak naturally, I'm here.";
     };
 
     recognition.onend = () => {
+        // Automatically restart if we are still in listening mode
         if (isListening) {
-            recognition.start();
+            try {
+                recognition.start();
+            } catch (e) {
+                // Ignore if already started
+            }
+        } else {
+            micButton.textContent = "Start Voice";
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        if (event.error === "no-speech") {
+            // Keep going even if it's quiet
             return;
         }
-        micButton.textContent = "Start Voice";
+        if (isListening) {
+            setTimeout(() => {
+                try { recognition.start(); } catch(e) {}
+            }, 1000);
+        }
     };
 
     recognition.onresult = (event) => {
         const transcript = event.results[event.resultIndex][0].transcript;
-        sendMessage(transcript);
+        if (transcript.trim().length > 1) {
+            sendMessage(transcript);
+        }
     };
 
     micButton.addEventListener("click", () => {
@@ -177,6 +197,7 @@ if (SpeechRecognition) {
             recognition.stop();
             return;
         }
+        isListening = true;
         recognition.start();
     });
 } else {

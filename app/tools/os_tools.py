@@ -2,6 +2,7 @@ import logging
 import webbrowser
 import os
 import time
+import importlib
 from PIL import ImageGrab
 
 logger = logging.getLogger("KEVIN-OS")
@@ -160,6 +161,31 @@ def capture_and_analyze_screen() -> str:
     except Exception as exc:
         return f"Screen capture failed: {exc}"
 
+
+
+def get_active_window_title() -> str:
+    """Get the title of the currently active window."""
+    try:
+        import pygetwindow as gw
+        window = gw.getActiveWindow()
+        if window:
+            return window.title
+        return "Unknown Window"
+    except Exception as exc:
+        logger.error("Failed to get active window title: %s", exc)
+        return "Unknown"
+
+def launch_desktop_pet() -> str:
+    """Launch the KEVIN Desktop Pet application."""
+    try:
+        import subprocess
+        # Run in background
+        subprocess.Popen([".\\.venv\\Scripts\\python.exe", "app/desktop_pet.py"], 
+                         creationflags=subprocess.CREATE_NO_WINDOW)
+        return "I'm coming. Just jumping onto your taskbar now."
+    except Exception as exc:
+        logger.error("Failed to launch desktop pet: %s", exc)
+        return f"Launch failed: {exc}"
 
 def research_assignment(topic: str) -> str:
     """Perform a deep search for assignment materials."""

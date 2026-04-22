@@ -72,6 +72,15 @@ async def get_dashboard(request: Request):
         return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/companion", response_class=HTMLResponse)
+async def get_companion(request: Request):
+    """Serves the floating companion widget."""
+    try:
+        return templates.TemplateResponse(request=request, name="companion.html")
+    except TypeError:
+        return templates.TemplateResponse("companion.html", {"request": request})
+
+
 @app.get("/health")
 async def health_check():
     return {
@@ -89,11 +98,14 @@ async def system_telemetry_pusher(websocket: WebSocket):
             # Telemetry every 2 seconds
             cpu = psutil.cpu_percent()
             ram = psutil.virtual_memory().percent
+            from app.tools.os_tools import get_active_window_title
+            window_title = await asyncio.to_thread(get_active_window_title)
             
             await websocket.send_json({
                 "type": "telemetry",
                 "cpu": cpu,
                 "ram": ram,
+                "window": window_title
             })
 
             # Proactive Call Detection every 10 seconds to reduce CPU burden

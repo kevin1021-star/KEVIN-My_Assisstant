@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KEVIN | Hacker Partner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/design_system.css">
+    <style>
+        :root {
+            --hacker-red: #ff0033;
+            --hacker-black: #0a0a0a;
+            --hacker-white: #f8fafc;
+        }
+
+        body {
+            background: transparent;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: var(--font-ui);
+        }
+
+        .companion-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding-bottom: 20px;
+        }
+
+        .anime-figure {
+            position: absolute;
+            bottom: 0;
+            left: -20px;
+            height: 90%;
+            width: auto;
+            z-index: 1;
+            filter: drop-shadow(0 0 15px rgba(255, 0, 51, 0.4));
+            animation: breathe 4s infinite ease-in-out;
+            mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.01); }
+        }
+
+        .chat-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            left: 40%;
+            bottom: 100px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 15px;
+            pointer-events: none;
+        }
+
+        .bubble {
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--hacker-red);
+            padding: 12px 18px;
+            border-radius: 15px 15px 15px 0;
+            color: var(--hacker-white);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+            animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            border-width: 10px 10px 0 0;
+            border-style: solid;
+            border-color: var(--hacker-red) transparent transparent transparent;
+        }
+
+        .bubble.user {
+            align-self: flex-end;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #fff;
+            border-radius: 15px 15px 0 15px;
+        }
+
+        .bubble.user::before { display: none; }
+        .bubble.user::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 0;
+            border-width: 10px 0 0 10px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+        }
+
+        @keyframes pop-in {
+            from { transform: scale(0.9) translateX(20px); opacity: 0; }
+            to { transform: scale(1) translateX(0); opacity: 1; }
+        }
+
+        .input-wrapper {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 20;
+            background: var(--hacker-black);
+            border: 2px solid var(--hacker-red);
+            border-radius: 10px;
+            padding: 5px 5px 5px 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(255, 0, 51, 0.2);
+        }
+
+        #companion-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--hacker-white);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .send-btn {
+            background: var(--hacker-red);
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover { background: #fff; color: var(--hacker-red); }
+
+        .status-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--hacker-red);
+            color: #fff;
+            padding: 3px 10px;
+            font-size: 0.6rem;
+            font-family: var(--font-mono);
+            z-index: 15;
+            letter-spacing: 0.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="companion-container">
+        <div id="status-badge" class="status-badge">HACKER_LINK: ACTIVE</div>
+        <img src="/static/img/kevin_anime.png" alt="Kevin" id="anime-figure" class="anime-figure">
+        
+        <div id="chat-overlay" class="chat-overlay">
+            <div class="bubble">System breached. I'm in. What's our target?</div>
+        </div>
+
+        <div class="input-wrapper">
+            <input type="text" id="companion-input" placeholder="Enter directive...">
+            <button id="send-btn" class="send-btn">EXEC</button>
+        </div>
+    </div>
+
+    <script>
+        const chatOverlay = document.getElementById("chat-overlay");
+        const input = document.getElementById("companion-input");
+        const sendBtn = document.getElementById("send-btn");
+        const statusBadge = document.getElementById("status-badge");
+        const figure = document.getElementById("anime-figure");
+        let socket;
+
+        function initSocket() {
+            const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/chat`);
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === "chat") {
+                    statusBadge.textContent = "HACKER_LINK: ACTIVE";
+                    figure.style.filter = "drop-shadow(0 0 15px rgba(255, 0, 51, 0.4))";
+                    appendMessage("partner", data.content);
+                } else if (data.type === "telemetry") {
+                    if (!statusBadge.textContent.includes("THINKING")) {
+                        statusBadge.textContent = "TARGET: " + data.window.toUpperCase();
+                    }
+                }
+            };
+        }
+
+        function appendMessage(role, text) {
+            const bubble = document.createElement("div");
+            bubble.className = `bubble ${role === 'user' ? 'user' : ''}`;
+            bubble.textContent = text;
+            chatOverlay.appendChild(bubble);
+            
+            if (chatOverlay.childNodes.length > 3) chatOverlay.firstChild.remove();
+            chatOverlay.scrollTop = chatOverlay.scrollHeight;
+        }
+
+        function send() {
+            const text = input.value.trim();
+            if (text && socket.readyState === WebSocket.OPEN) {
+                appendMessage("user", text);
+                statusBadge.textContent = "STATUS: DECRYPTING...";
+                figure.style.filter = "drop-shadow(0 0 25px #fff)";
+                socket.send(text);
+                input.value = "";
+            }
+        }
+
+        sendBtn.onclick = send;
+        input.onkeypress = (e) => { if (e.key === "Enter") send(); };
+
+        initSocket();
+    </script>
+</body>
+</html>

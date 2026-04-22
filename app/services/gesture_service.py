@@ -56,6 +56,9 @@ class GestureService:
                 ):
                     return
 
+            if x is None or y is None:
+                return
+
             screen_x = int(x * self.screen_width)
             screen_y = int(y * self.screen_height)
             self.last_x, self.last_y = x, y

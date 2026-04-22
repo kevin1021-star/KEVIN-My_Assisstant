@@ -1,12 +1,8 @@
-const chatLog = document.getElementById("chat-log");
+// KEVIN HUD v2 - Intelligence Integration
 const chatInput = document.getElementById("chat-input");
 const micButton = document.getElementById("mic-btn");
 const speakToggle = document.getElementById("speak-toggle");
 const connectionPill = document.getElementById("connection-pill");
-const cpuValue = document.getElementById("cpu-value");
-const memValue = document.getElementById("mem-value");
-const cpuGauge = document.getElementById("cpu-gauge");
-const memGauge = document.getElementById("mem-gauge");
 const modeBadge = document.getElementById("mode-badge");
 const visionState = document.getElementById("vision-state");
 const neuralLog = document.getElementById("neural-log");
@@ -15,15 +11,38 @@ const gestureCanvas = document.getElementById("gesture-canvas");
 const videoElement = document.getElementById("webcam");
 const gestureCtx = gestureCanvas.getContext("2d");
 
+// Initialize HUD Components
+const cpuGauge = new HUD.CircularGauge("cpu-gauge-v2", "CPU_LOAD", "var(--accent)");
+const memGauge = new HUD.CircularGauge("mem-gauge-v2", "MEM_USAGE", "var(--secondary)");
+const feed = new HUD.IntelligenceFeed("chat-log");
+
+// Global State
 let speakResponses = true;
 let isListening = false;
 let recognition = null;
-let currentMode = "IDLE";
 let socket = null;
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// Initialization Boot Sequence
+async function bootSequence() {
+    log("Initializing Neural OS...");
+    await new Promise(r => setTimeout(r, 500));
+    log("Loading Core Modules...");
+    await new Promise(r => setTimeout(r, 400));
+    log("Establishing Secure Link...");
+    initSocket();
+    await new Promise(r => setTimeout(r, 600));
+    log("Vision Systems Online");
+    log("System Ready");
+}
+
 function log(msg) {
-    if (neuralLog) neuralLog.textContent = msg.toUpperCase();
+    if (neuralLog) {
+        const line = document.createElement("div");
+        line.textContent = `> ${msg.toUpperCase()}`;
+        neuralLog.prepend(line);
+        if (neuralLog.childNodes.length > 10) neuralLog.lastChild.remove();
+    }
     console.log(`[KEVIN] ${msg}`);
 }
 
@@ -39,16 +58,19 @@ function initSocket() {
         log("Neural Link Established");
         if (connectionPill) {
             connectionPill.textContent = "LINK_ACTIVE";
-            connectionPill.style.color = "var(--cyan)";
+            connectionPill.style.color = "var(--accent)";
+            connectionPill.classList.add("animate-pulse");
         }
         camera.start().catch(err => log(`Vision Fail: ${err}`));
     };
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === "telemetry") updateTelemetry(data.cpu, data.ram);
-        else if (data.type === "chat") {
-            appendMessage("assistant", data.content);
+        if (data.type === "telemetry") {
+            cpuGauge.update(data.cpu);
+            memGauge.update(data.ram);
+        } else if (data.type === "chat") {
+            feed.append("assistant", data.content);
             if (speakResponses) speakText(data.content);
         }
     };
@@ -58,17 +80,10 @@ function initSocket() {
         if (connectionPill) {
             connectionPill.textContent = "LINK_OFFLINE";
             connectionPill.style.color = "var(--alert)";
+            connectionPill.classList.remove("animate-pulse");
         }
         setTimeout(initSocket, 3000);
     };
-}
-
-function appendMessage(role, text) {
-    const msg = document.createElement("div");
-    msg.className = `msg ${role}`;
-    msg.innerHTML = `<span class="role">${role.toUpperCase()}</span><p>${text}</p>`;
-    chatLog.appendChild(msg);
-    chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 function sendMessage(text) {
@@ -77,16 +92,8 @@ function sendMessage(text) {
         log("No Link. Message Queued.");
         return;
     }
-    appendMessage("user", trimmed);
+    feed.append("user", trimmed);
     socket.send(trimmed);
-}
-
-function updateTelemetry(cpu, ram) {
-    if (cpuValue) cpuValue.textContent = `${cpu}%`;
-    if (memValue) memValue.textContent = `${ram}%`;
-    const circ = 283; 
-    if (cpuGauge) cpuGauge.style.strokeDashoffset = circ - (cpu / 100) * circ;
-    if (memGauge) memGauge.style.strokeDashoffset = circ - (ram / 100) * circ;
 }
 
 // Vision Engine
@@ -97,7 +104,7 @@ const hands = new Hands({
 hands.setOptions({
     maxNumHands: 2,
     modelComplexity: 1,
-    minDetectionConfidence: 0.4, // Lowered for better sensitivity
+    minDetectionConfidence: 0.4,
     minTrackingConfidence: 0.4,
 });
 
@@ -112,23 +119,48 @@ hands.onResults((results) => {
     visionState.textContent = `HANDS_${results.multiHandLandmarks.length}`;
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        results.multiHandLandmarks.forEach((landmarks, index) => {
-            drawConnectors(gestureCtx, landmarks, HAND_CONNECTIONS, { color: "rgba(0, 242, 255, 0.5)", lineWidth: 2 });
-            drawLandmarks(gestureCtx, landmarks, { color: "var(--cyan)", lineWidth: 1, radius: 2 });
+        results.multiHandLandmarks.forEach((landmarks) => {
+            drawConnectors(gestureCtx, landmarks, HAND_CONNECTIONS, { color: "rgba(0, 242, 255, 0.3)", lineWidth: 1 });
+            drawLandmarks(gestureCtx, landmarks, { color: "var(--accent)", lineWidth: 1, radius: 2 });
             
             const thumb = landmarks[4];
             const indexTip = landmarks[8];
             const middleTip = landmarks[12];
             
+            const ringTip = landmarks[16];
+            const pinkyTip = landmarks[20];
+            
             const distIndex = Math.hypot(thumb.x - indexTip.x, thumb.y - indexTip.y);
             const distMiddle = Math.hypot(thumb.x - middleTip.x, thumb.y - middleTip.y);
+            const distRing = Math.hypot(thumb.x - ringTip.x, thumb.y - ringTip.y);
+            const distPinky = Math.hypot(thumb.x - pinkyTip.x, thumb.y - pinkyTip.y);
 
-            if (distMiddle < 0.05) {
+            // Three Fingers Up (Summon)
+            if (indexTip.y < thumb.y && middleTip.y < thumb.y && ringTip.y < thumb.y && pinkyTip.y > thumb.y) {
+                modeBadge.textContent = "SUMMON";
+                socket.send("summon partner");
+                log("Companion Summoned");
+                
+                // Automatically activate voice listening
+                if (typeof isListening !== 'undefined' && !isListening) {
+                    const micBtn = document.getElementById("mic-btn");
+                    if (micBtn) micBtn.click();
+                }
+            } 
+            // Fist (Dismiss)
+            else if (distIndex < 0.08 && distMiddle < 0.08 && distRing < 0.08 && distPinky < 0.08) {
+                modeBadge.textContent = "DISMISS";
+                if (window.companionWindow && !window.companionWindow.closed) {
+                    window.companionWindow.close();
+                    log("Companion Dismissed");
+                }
+            }
+            else if (distMiddle < 0.05) {
                 modeBadge.textContent = "POINTER";
                 socket.send(JSON.stringify({ type: "gesture", x: middleTip.x, y: middleTip.y, action: "move" }));
             } else if (distIndex < 0.05) {
-                log("Click Detected");
-                socket.send(JSON.stringify({ type: "gesture", action: "click" }));
+                log("Click Gesture");
+                socket.send(JSON.stringify({ type: "gesture", x: indexTip.x, y: indexTip.y, action: "click" }));
             } else {
                 modeBadge.textContent = "IDLE";
             }
@@ -145,8 +177,9 @@ if (SpeechRecognition) {
 
     recognition.onstart = () => {
         isListening = true;
-        micButton.style.backgroundColor = "var(--cyan)";
-        log("Mic Active...");
+        micButton.style.background = "var(--accent)";
+        micButton.style.color = "var(--bg-dark)";
+        log("Mic Active");
     };
 
     recognition.onresult = (event) => {
@@ -157,7 +190,8 @@ if (SpeechRecognition) {
 
     recognition.onend = () => {
         isListening = false;
-        micButton.style.backgroundColor = "";
+        micButton.style.background = "";
+        micButton.style.color = "";
     };
 }
 
@@ -189,10 +223,10 @@ document.getElementById("send-btn").onclick = () => {
 
 speakToggle.onclick = () => {
     speakResponses = !speakResponses;
-    speakToggle.textContent = speakResponses ? "ACTIVE" : "MUTED";
-    speakToggle.style.borderColor = speakResponses ? "var(--cyan)" : "var(--alert)";
+    speakToggle.textContent = speakResponses ? "VOICE: ACTIVE" : "VOICE: MUTED";
+    speakToggle.style.borderColor = speakResponses ? "var(--accent)" : "var(--alert)";
 };
 
-initSocket();
+bootSequence();
 setInterval(syncClock, 1000);
 syncClock();

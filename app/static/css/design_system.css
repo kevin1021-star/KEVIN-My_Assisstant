@@ -1,0 +1,140 @@
+:root {
+    /* Color Palette - Stark Tech (Cyan/Gold/Deep Navy) */
+    --accent-h: 185;
+    --accent-s: 100%;
+    --accent-l: 50%;
+    --accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    --accent-glow: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.3);
+    
+    --secondary-h: 45;
+    --secondary-s: 100%;
+    --secondary-l: 50%;
+    --secondary: hsl(var(--secondary-h), var(--secondary-s), var(--secondary-l));
+    
+    --alert: #ff0033;
+    --bg-dark: #020617;
+    --bg-navy: #0f172a;
+    --text-main: #f8fafc;
+    --text-dim: #94a3b8;
+    
+    /* Spacing & Sizes */
+    --p-1: 0.25rem;
+    --p-2: 0.5rem;
+    --p-4: 1rem;
+    --p-6: 1.5rem;
+    
+    /* Fonts */
+    --font-ui: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Base Styles */
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-ui);
+    height: 100vh;
+    overflow: hidden;
+    background-image: 
+        radial-gradient(circle at 50% 50%, hsla(var(--accent-h), 100%, 10%, 0.3) 0%, transparent 70%),
+        linear-gradient(rgba(15, 23, 42, 0.8) 0%, rgba(2, 6, 23, 1) 100%);
+}
+
+/* Glassmorphism Panel */
+.glass-panel {
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+}
+
+/* Stark Corners */
+.stark-corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--accent);
+}
+.stark-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.stark-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.stark-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.stark-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+/* Micro-Animations */
+@keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 2px var(--accent)); }
+    50% { filter: drop-shadow(0 0 8px var(--accent)); }
+}
+
+@keyframes orbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-pulse { animation: pulse-glow 3s infinite ease-in-out; }
+.animate-orbit { animation: orbit 20s infinite linear; }
+
+/* HUD Utilities */
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+}
+
+.tech-btn {
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tech-btn:hover {
+    background: var(--accent);
+    color: var(--bg-dark);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.tech-btn:active { transform: scale(0.95); }
+
+/* Boot Sequence */
+@keyframes boot-in {
+    from { opacity: 0; transform: scale(1.1) translateY(20px); filter: blur(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+.boot-sequence {
+    animation: boot-in 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Neural Log Lines */
+#neural-log div {
+    border-left: 2px solid var(--accent);
+    padding-left: 8px;
+    margin-bottom: 4px;
+    background: rgba(0, 242, 255, 0.05);
+    animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(-10px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}

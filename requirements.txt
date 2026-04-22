@@ -25,3 +25,4 @@ psutil
 pywinauto
 pywin32
 comtypes
+pygetwindow
