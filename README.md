@@ -1,41 +1,57 @@
-# 🧊 KEVIN // Advanced Partner Interface (v5.0)
+# 🧊 KEVIN // Desktop Partner & Neural Interface (v6.0)
 
-[![Hacker HUD](https://img.shields.io/badge/UI-HUD_V5.0-00f3ff?style=for-the-badge&logoColor=white)](file:///app/templates/index.html)
-[![Neural Mouse](https://img.shields.io/badge/Vision-Neural_Mouse-ff003c?style=for-the-badge)](file:///app/static/js/main.js)
-[![OCR](https://img.shields.io/badge/Intelligence-OCR_Script-8a2be2?style=for-the-badge)](file:///app/services/groq_service.py)
+![KEVIN Logo](app/static/img/kevin_avatar.png)
 
-**KEVIN** (formerly JARVIS) is an elite, tech-centric AI partner designed for **AS**. He is more than an assistant—he is a collaborator, system controller, and digital protector.
+> "I'm in the system, AS. What's our next breach?" — **KEVIN**
+
+**KEVIN** is an elite, AI-driven technical partner and personal companion designed for **AS**. He has evolved from a simple assistant into a persistent, human-like entity that lives directly on your desktop, providing expert guidance in Hacking, Coding, and University Research.
 
 ---
 
-## ⚡ Core Intelligence Features
+## 🚀 Evolution 6.0: The Desktop Partner
 
-### 🧠 Neural Hand Interface
-- **Neural Mouse (Middle Pinch)**: Control your system mouse using hand movement. Includes an 'Air Tap' (quick thrust) to click and vertical hand-shifts for scrolling.
-- **Air Writing (Index Pinch)**: Write commands directly in the air. Kevin uses integrated **Tesseract.js OCR** to transcribe your handwriting and execute system actions.
-- **Snappy Response**: Zero-lag tracking with a custom jitter filtration system.
+### 👤 Anime Hacker Persona (Desktop Pet)
+KEVIN has "broken out" of the browser. He now exists as a standalone **Desktop Pet** who sits on your taskbar.
+- **True Cutout**: A high-fidelity anime hacker figure with **zero outer box** or background.
+- **Humanoid Movement**: Subtle "breathing" and "swaying" animations make him feel like a living entity.
+- **Polite Avoidance**: KEVIN intelligently **slides away** when your mouse cursor gets close and allows **click-through** so he never blocks your work.
+- **Humanoid Voice**: Integrated **TTS (Text-to-Speech)** gives KEVIN a real voice on your taskbar.
 
-### 💂 Persona & Bilingual Support
-- **Witty Defender**: Sharp, protective, and elite persona. 
-- **Language Fluidity**: Seamless transitions between English, Hindi, and Hinglish.
+### 👁️ Stark-Tech HUD v2.0
+The central command hub has been completely redesigned with a "Stark-Tech" aesthetic.
+- **Modular Grid**: Real-time telemetry (CPU/RAM), Intelligence Feed, and Neural Vision.
+- **Glassmorphism**: A premium, translucent interface with pulse-glow micro-animations.
+- **Neural Vision**: Augmented webcam feed with hexagonal overlays and scanlines.
 
-### 👁️ Hacker HUD v5.0
-- **Clean Dark Theme**: Deep-black grids, scanlines, and neon cyan accents.
-- **Vision Feed**: Real-time MediaPipe hand tracking overlaid with a technical skeleton.
-- **Performance Telemetry**: Active monitoring of CPU and RAM load.
+### 🧠 Expert Reasoning & Context Awareness
+- **Context-Aware**: KEVIN monitors your active window title to provide perfectly timed advice.
+- **Specialized Fields**: Expert-level guidance for **Bug Bounty**, **Penetration Testing**, and **Advanced Coding**.
+- **Humanoid Persona**: Talks like a real partner—no machine-speak, no bot-like status messages, and no roleplay asterisks.
 
 ---
 
 ## 🛠️ Technology Stack
-- **Backend**: FastAPI (Python)
-- **Frontend**: Vanilla JS, MediaPipe, Tesseract.js
-- **LLM**: Meta Llama 3.1 8B (via Groq Cloud)
-- **OS Interface**: PyAutoGUI, AppOpener, Psutil
-- **Real-time**: WebSockets (Parallelized Gesture Queue)
+- **AI Brain**: Meta Llama 3.1 8B (via Groq)
+- **Desktop Core**: Python, PyQt6 (for the Pet), FastAPI (for the Brain)
+- **Vision**: MediaPipe (Hand Tracking), Tesseract (OCR)
+- **Voice**: pyttsx3 (Humanoid TTS), Web Speech API
+- **OS Interface**: pygetwindow, pyautogui, psutil
 
 ---
 
-## 🚀 Installation & Setup
+## 🎮 Neural Gestures (v3.0)
+
+| Gesture | Action | Result |
+| :--- | :--- | :--- |
+| **Three Fingers Up** | `SUMMON` | KEVIN jumps onto your desktop and starts listening. |
+| **Fist** | `DISMISS` | KEVIN steps back and closes the desktop pet window. |
+| **Middle Pinch** | `NEURAL_MOUSE` | Control the cursor with your hand movement. |
+| **Index Pinch** | `AIR_WRITE` | Draw commands in the air for KEVIN to execute. |
+| **Index Thrust** | `CLICK` | Perform a left-click at the cursor's location. |
+
+---
+
+## 🚀 Installation & Deployment
 
 1. **Clone the Hub**
    ```bash
@@ -43,36 +59,29 @@
    cd KEVIN-My_Assisstant
    ```
 
-2. **Configure Environment**
-   Create a `.env` file in the root directory:
-   ```env
-   GROQ_API_KEY=your_key_here
-   ```
-
-3. **Install Dependencies**
+2. **Setup Environment**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Boot the System**
+3. **Initialize Link**
    ```bash
    python run.py
    ```
 
----
-
-## 🎮 How to Interact
-
-| Gesture | Mode | Result |
-| :--- | :--- | :--- |
-| **Index + Thumb Pinch** | `AIR_WRITE` | Draw text in the air. Release to execute as a command. |
-| **Middle + Thumb Pinch** | `NEURAL_MOUSE` | Move hand to move cursor. Up/Down to scroll. |
-| **Index Forward Thrust** | `AIR_TAP` | Left-Click at current cursor position. |
-| **Voice Command** | `COMMS` | Talk naturally to Kevin (Greetings or System Tasks). |
+4. **Deploy Partner**
+   Open `http://localhost:8000` and raise **three fingers** to summon KEVIN to your taskbar.
 
 ---
 
-> "Logic is just the beginning of wisdom, AS. Let's build something better." — Kevin
+### 🎨 Visual Preview
+
+<p align="center">
+  <img src="app/static/img/kevin_anime.png" width="300" alt="Anime Hacker Persona">
+  <br>
+  <i>KEVIN: The Anime Hacker Cutout</i>
+</p>
 
 ---
-*Created with ❤️ by AS ."
+
+*Built with ❤️ for the elite. Logic is just the beginning.*
