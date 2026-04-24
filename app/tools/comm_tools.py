@@ -3,12 +3,18 @@ import logging
 
 logger = logging.getLogger("KEVIN-COMMS")
 
+_pywinauto_failed = False
+
 def _desktop():
+    global _pywinauto_failed
+    if _pywinauto_failed:
+        return None
     try:
         pywinauto = importlib.import_module("pywinauto")
         return pywinauto.Desktop(backend="uia")
     except Exception as exc:
         logger.warning("pywinauto unavailable: %s", exc)
+        _pywinauto_failed = True
         return None
 
 

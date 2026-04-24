@@ -6,7 +6,8 @@ import websockets
 import pyttsx3
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget
 from PyQt6.QtCore import Qt, QPoint, QTimer, QSize
-from PyQt6.QtGui import QPixmap, QMovie, QPainter, QColor
+from PyQt6.QtGui import QPixmap, QMovie, QPainter, QColor, QCursor
+import pygetwindow as gw
 
 class DesktopPet(QMainWindow):
     def __init__(self):
@@ -31,8 +32,7 @@ class DesktopPet(QMainWindow):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        # Make him non-blocking so you can click through him to your work
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         
         # Main Layout
         self.central_widget = QWidget()
@@ -72,14 +72,14 @@ class DesktopPet(QMainWindow):
         # Character Figure
         self.label = QLabel()
         self.pixmap = QPixmap("app/static/img/kevin_anime.png")
-        # Resize to a reasonable pet size
-        self.pixmap = self.pixmap.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        # Resize to a reasonable pet size (a bit smaller so he doesn't block much)
+        self.pixmap = self.pixmap.scaled(250, 250, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.label.setPixmap(self.pixmap)
         self.layout.addWidget(self.label)
         
-        # Positioning (Bottom Right above taskbar)
+        # Positioning (Bottom Right corner exactly)
         screen = QApplication.primaryScreen().availableGeometry()
-        self.move(screen.width() - 320, screen.height() - 350)
+        self.move(screen.width() - 260, screen.height() - 260)
         
         # State for dragging
         self.drag_pos = QPoint()
@@ -94,6 +94,18 @@ class DesktopPet(QMainWindow):
         self.timer.timeout.connect(self._animate_idle)
         self.timer.start(100)
         self.anim_frame = 0
+
+        # Smart avoidance timer
+        self.avoid_timer = QTimer()
+        self.avoid_timer.timeout.connect(self._smart_avoid)
+        self.avoid_timer.start(2000) # Check windows every 2 seconds
+        
+        self.cursor_timer = QTimer()
+        self.cursor_timer.timeout.connect(self._check_cursor)
+        self.cursor_timer.start(100) # Check cursor every 100ms
+        
+        self.current_corner = "bottom-right"
+        self.is_moving = False
 
     def _run_async_loop(self):
         asyncio.set_event_loop(self.loop)
@@ -167,36 +179,106 @@ class DesktopPet(QMainWindow):
         else:
             self.label.setStyleSheet("")
 
-        self._check_mouse_proximity()
-
-    def _check_mouse_proximity(self):
-        """If the mouse gets too close, KEVIN steps aside immediately."""
-        from PyQt6.QtGui import QCursor
-        cursor_pos = QCursor.pos()
-        pet_rect = self.geometry()
-        
-        # Inflate the detection area
-        detection_rect = pet_rect.adjusted(-100, -100, 100, 100)
-        
-        if detection_rect.contains(cursor_pos):
-            screen = QApplication.primaryScreen().availableGeometry()
-            # If mouse is on the right, move left, and vice versa
-            target_x = 50 if cursor_pos.x() > screen.width() // 2 else screen.width() - 350
-            target_y = pet_rect.y() # Keep current height
-            
-            # Snap to a corner if he's still in the way
-            if abs(cursor_pos.y() - target_y) < 200:
-                target_y = 50 if cursor_pos.y() > screen.height() // 2 else screen.height() - 400
-                
-            self._slide_to(target_x, target_y)
-
     def _slide_to(self, x, y):
         """Smoothly move to the target position."""
-        # Simple linear interpolation for sliding effect
         curr_x, curr_y = self.x(), self.y()
         step_x = (x - curr_x) / 5
         step_y = (y - curr_y) / 5
         self.move(int(curr_x + step_x), int(curr_y + step_y))
+
+    def _check_cursor(self):
+        """Move away if the mouse cursor gets too close."""
+        if getattr(self, 'is_dragging', False) or self.is_moving:
+            return
+            
+        cursor_pos = QCursor.pos()
+        pet_pos = self.geometry()
+        center = pet_pos.center()
+        
+        # Calculate distance
+        dist = (cursor_pos - center).manhattanLength()
+        
+        if dist < 180: # If mouse is within 180px
+            print(f"[PET] Cursor detected at {dist}px. Fleeing!")
+            self._smart_avoid(flee_cursor=True)
+
+    def _smart_avoid(self, flee_cursor=False):
+        """Automatically move away from the active window or cursor."""
+        if getattr(self, 'is_dragging', False) or self.is_moving:
+            return
+
+        try:
+            window = gw.getActiveWindow()
+            # If not fleeing cursor, and no window is blocking, do nothing
+            if not flee_cursor:
+                if not window or window.title == self.windowTitle() or window.isMinimized:
+                    return
+            
+            screen = QApplication.primaryScreen().availableGeometry()
+            pet_rect = self.geometry()
+            
+            should_move = flee_cursor
+            if not should_move:
+                # Check window overlap
+                win_left, win_top, win_width, win_height = window.left, window.top, window.width, window.height
+                if (pet_rect.left() < win_left + win_width and 
+                    pet_rect.left() + pet_rect.width() > win_left and
+                    pet_rect.top() < win_top + win_height and
+                    pet_rect.top() + pet_rect.height() > win_top):
+                    should_move = True
+
+            if should_move:
+                corners = {
+                    "bottom-right": (screen.width() - pet_rect.width() - 20, screen.height() - pet_rect.height() - 20),
+                    "bottom-left": (20, screen.height() - pet_rect.height() - 20),
+                    "top-right": (screen.width() - pet_rect.width() - 20, 60),
+                    "top-left": (20, 60)
+                }
+                
+                # Filter out corners that are currently occupied by the active window
+                available_corners = []
+                for name, (nx, ny) in corners.items():
+                    is_blocked_by_win = False
+                    if window and not window.isMinimized:
+                        win_left, win_top, win_width, win_height = window.left, window.top, window.width, window.height
+                        if (nx < win_left + win_width and nx + pet_rect.width() > win_left and
+                            ny < win_top + win_height and ny + pet_rect.height() > win_top):
+                            is_blocked_by_win = True
+                    
+                    # Also check if cursor is near this candidate corner
+                    cursor_pos = QCursor.pos()
+                    dist_to_corner = (cursor_pos - QPoint(nx + pet_rect.width()//2, ny + pet_rect.height()//2)).manhattanLength()
+                    
+                    if not is_blocked_by_win and dist_to_corner > 250:
+                        available_corners.append((name, nx, ny))
+
+                if available_corners:
+                    # Pick the first available corner that isn't the current one
+                    for name, nx, ny in available_corners:
+                        if name != self.current_corner:
+                            self.current_corner = name
+                            self._jump_to(nx, ny)
+                            break
+        except Exception as e:
+            print(f"[PET] Avoidance error: {e}")
+
+    def _jump_to(self, x, y):
+        self.is_moving = True
+        self.target_pos = QPoint(x, y)
+        self.slide_timer = QTimer()
+        self.slide_timer.timeout.connect(self._do_slide)
+        self.slide_timer.start(20)
+
+    def _do_slide(self):
+        curr = self.pos()
+        diff = self.target_pos - curr
+        if diff.manhattanLength() < 10:
+            self.move(self.target_pos)
+            self.slide_timer.stop()
+            self.is_moving = False
+        else:
+            # Faster slide
+            self.move(curr + diff / 3)
 
     def mouseDoubleClickEvent(self, event):
         """Toggle size between small and large on double click."""
@@ -211,13 +293,18 @@ class DesktopPet(QMainWindow):
     # Allow dragging KEVIN around
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            self.is_dragging = True
             self.drag_pos = event.globalPosition().toPoint()
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.MouseButton.LeftButton:
+        if getattr(self, 'is_dragging', False) and event.buttons() == Qt.MouseButton.LeftButton:
             delta = event.globalPosition().toPoint() - self.drag_pos
             self.move(self.x() + delta.x(), self.y() + delta.y())
             self.drag_pos = event.globalPosition().toPoint()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.is_dragging = False
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

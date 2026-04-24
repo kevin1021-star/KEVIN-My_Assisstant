@@ -176,9 +176,19 @@ def get_active_window_title() -> str:
         return "Unknown"
 
 def launch_desktop_pet() -> str:
-    """Launch the KEVIN Desktop Pet application."""
+    """Launch the KEVIN Desktop Pet application, avoiding duplicates."""
     try:
         import subprocess
+        import psutil
+        
+        # Check if already running
+        for proc in psutil.process_iter(['name', 'cmdline']):
+            try:
+                if proc.info['cmdline'] and 'desktop_pet.py' in ' '.join(proc.info['cmdline']):
+                    return "I'm already on your taskbar, partner."
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+                
         # Run in background
         subprocess.Popen([".\\.venv\\Scripts\\python.exe", "app/desktop_pet.py"], 
                          creationflags=subprocess.CREATE_NO_WINDOW)

@@ -8,6 +8,7 @@ import uuid
 from config import CHATS_DATA_DIR, MAX_CHAT_HISTORY_TURNS
 from app.model import ChatMessage, ChatHistory
 from app.services.groq_service import GroqService
+from app.services.memory_service import log_conversation
 
 
 logger = logging.getLogger("J.A.R.V.I.S")
@@ -67,6 +68,7 @@ class ChatService:
         
         # Add user message
         history.append(ChatMessage(role="user", content=user_text))
+        log_conversation("user", user_text)
         
         # Trim history for LLM context window
         context_history = self._get_context_window(history)
@@ -76,6 +78,7 @@ class ChatService:
         
         # Add assistant message
         history.append(ChatMessage(role="assistant", content=response_text))
+        log_conversation("assistant", response_text)
         
         # Save to disk
         self.save_session(session_id)

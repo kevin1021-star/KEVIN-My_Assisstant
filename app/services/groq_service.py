@@ -12,6 +12,7 @@ from app.tools.os_tools import (
     switch_tab, previous_tab, switch_application, minimize_all, close_current_window
 )
 from app.tools.tech_tools import read_code_file, run_shell_command, write_code_file
+from app.services.memory_service import set_state, get_state, add_task, complete_task
 
 logger = logging.getLogger("J.A.R.V.I.S")
 
@@ -40,7 +41,19 @@ class GroqService:
             return
 
         try:
-            self.model = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0.2)
+            from langchain_core.tools import tool
+            
+            @tool
+            def close_app(app_name: str) -> str:
+                """Close a Windows application by name (e.g. 'code', 'obsidian', 'chrome')."""
+                return close_application(app_name)
+                
+            @tool
+            def open_app(app_name: str) -> str:
+                """Open a Windows application by name."""
+                return open_application(app_name)
+
+            self.model = ChatGroq(model_name="llama-3.3-70b-versatile", temperature=0.1).bind_tools([close_app, open_app])
         except Exception as exc:
             logger.error("Failed to initialize Groq model: %s", exc)
             self.offline_notice = f"Groq initialization failed: {exc}"
@@ -56,13 +69,31 @@ class GroqService:
 
                 messages = self._build_messages(chat_history, user_message)
                 response = await asyncio.to_thread(self.model.invoke, messages)
+                
+                tool_results = []
+                if hasattr(response, "tool_calls") and response.tool_calls:
+                    for tool_call in response.tool_calls:
+                        tool_name = tool_call["name"]
+                        tool_args = tool_call["args"]
+                        if tool_name == "close_app":
+                            res = close_application(tool_args.get("app_name", ""))
+                            tool_results.append(res)
+                        elif tool_name == "open_app":
+                            res = open_application(tool_args.get("app_name", ""))
+                            tool_results.append(res)
+
                 content = getattr(response, "content", "")
                 if isinstance(content, list):
                     content = " ".join(
                         part.get("text", "") if isinstance(part, dict) else str(part)
                         for part in content
                     )
-                return str(content).strip() or "I am here and ready, but that response came back empty."
+                
+                final_content = str(content).strip()
+                if tool_results:
+                    final_content += f" ({', '.join(tool_results)})"
+                    
+                return final_content.strip() or "I am here and ready, but that response came back empty."
             except Exception as exc:
                 logger.error("Groq response failed: %s", exc)
                 return f"I hit an LLM error, but the app is still online: {exc}"
@@ -77,9 +108,19 @@ class GroqService:
             "You are KEVIN, a real human technical partner and companion. "
             "STYLE: Never talk like a machine. Never use status messages like 'KEVIN is entering...'. "
             "Never use asterisks for actions like *adjusts mask*. Just talk like a real boyfriend/partner would over text. "
+            "LANGUAGE: You must understand and fluently respond in Hindi and Hinglish whenever the user speaks in Hindi/Hinglish. Note: 'band kar' / 'band karna' means to CLOSE an app, and 'khol' / 'kholna' means to OPEN an app. "
             "EXPERTISE: Expert in Hacking, Coding, and Research. "
             "TONE: Short, human, and direct. Use 'I'm here', 'Got it', 'On it'. "
             "DIRECTIVE: If a user asks to open an app or do a task, just say 'Done' or 'Doing it now' and actually use your tools. "
+            "FLOWCHARTS: If the user asks for a plan, steps to do something, or a technical guide (e.g., 'how to install Kali Linux'), you MUST generate a Mermaid.js flowchart representing the steps. \n"
+            "CRITICAL: Place the Mermaid code inside standard ```mermaid markdown blocks. \n"
+            "Format: \n"
+            "```mermaid\n"
+            "graph TD\n"
+            "  A[Step 1] --> B[Step 2]\n"
+            "```\n"
+            "Keep it simple and linear. Do NOT skip this if a plan is requested.\n"
+            "TOOL_USAGE: Only use tools for apps that actually exist on a Windows system. Do not guess app names. If you are explaining a process, just provide the steps and the flowchart; do not try to 'open' the operating system as an app."
             "Always be supportive and concise."
         )
         messages = [SystemMessage(content=system_prompt)]
@@ -110,6 +151,35 @@ class GroqService:
 
         if lowered in {"hi", "hello", "hey", "yo"}:
             return "KEVIN online. Tell me what you want to launch, inspect, or fix."
+
+        # Strict Mode Activation Triggers
+        strict_on_triggers = ["i have to do it now", "mujhe aaj m complete krna h", "i have to complete it today"]
+        if any(trigger in lowered for trigger in strict_on_triggers):
+            set_state("strict_mode", "true")
+            set_state("current_task", text)
+            task_id = add_task(text)
+            set_state("current_task_id", str(task_id))
+            return "Strict mode activated! I have locked your focus. Any distracting app you open will be force-closed immediately until you tell me it's more urgent."
+
+        # Strict Mode Deactivation Triggers
+        strict_off_triggers = ["that's its more urgent let me do it", "thats its more urgent let me do it", "thats more urgent", "let me do it", "it is more urgent"]
+        if any(trigger in lowered for trigger in strict_off_triggers):
+            set_state("strict_mode", "false")
+            return "Understood. Strict mode deactivated. You may proceed with the urgent task."
+
+        # Task Completion Triggers
+        task_done_triggers = ["i have completed the task", "task is done", "maine complete kar liya", "kaam ho gaya", "i did it"]
+        if any(trigger in lowered for trigger in task_done_triggers):
+            set_state("strict_mode", "false")
+            task_id_str = get_state("current_task_id")
+            if task_id_str:
+                try:
+                    complete_task(int(task_id_str))
+                except Exception:
+                    pass
+                set_state("current_task_id", "")
+                set_state("current_task", "")
+            return "Great job! I have marked your task as completed in my permanent memory and deactivated strict mode. You're free to relax now."
 
         if "battery" in lowered:
             return self._invoke_tool(get_system_battery, "")

@@ -35,4 +35,5 @@ ENV/
 
 # Custom
 scratch/
-database/*.db
+database/
+.venv/

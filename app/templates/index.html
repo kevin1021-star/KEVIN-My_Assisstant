@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <link rel="stylesheet" href="/static/css/design_system.css">
     <style>
         .hud-container {
@@ -92,10 +93,37 @@
             display: flex;
             flex-direction: column;
             gap: var(--p-4);
+            min-height: 0;
+            overflow: hidden;
+        }
+        .top-voice-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 40px;
+            background: rgba(0, 242, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 242, 255, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #fff;
+            gap: 20px;
+        }
+        .hud-container {
+            margin-top: 40px;
+            height: calc(100vh - 40px);
         }
     </style>
 </head>
 <body>
+    <div class="top-voice-bar">
+        <span id="voice-transcript-display">MIC OFF // CLICK TO START</span>
+        <button id="top-mic-btn" class="tech-btn" style="padding: 2px 15px; background: rgba(0,242,255,0.2);">START CAPTURING VOICE</button>
+    </div>
+
     <div class="hex-overlay" style="opacity: 0.3;"></div>
     
     <div class="hud-container">
@@ -146,6 +174,15 @@
             <video id="webcam" class="video-feed" autoplay playsinline muted></video>
             <canvas id="gesture-canvas" style="position: absolute; inset: 0; z-index: 10;"></canvas>
             
+            <!-- Flowchart Overlay -->
+            <div id="flowchart-overlay" style="position: absolute; inset: 0; z-index: 15; background: rgba(0,20,30,0.95); display: none; flex-direction: column; padding: var(--p-6); overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,242,255,0.3); padding-bottom: 10px; margin-bottom: 20px;">
+                    <span class="eyebrow" style="color: var(--accent);">TACTICAL PLAN // FLOWCHART</span>
+                    <button onclick="document.getElementById('flowchart-overlay').style.display='none'" class="tech-btn" style="padding: 5px 15px;">CLOSE PLAN</button>
+                </div>
+                <div id="flowchart-render" style="flex: 1; display: flex; justify-content: center; align-items: center; overflow: auto;"></div>
+            </div>
+            
             <div style="position: absolute; top: 20px; left: 20px; z-index: 20;">
                 <div class="glass-panel" style="padding: 5px 15px;">
                     <span id="mode-badge" class="eyebrow" style="color: var(--accent);">IDLE</span>
@@ -161,7 +198,7 @@
 
         <!-- Right Sidebar -->
         <aside class="sidebar">
-            <div class="glass-panel" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="glass-panel" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
                 <div class="stark-corner tl"></div><div class="stark-corner tr"></div><div class="stark-corner bl"></div><div class="stark-corner br"></div>
                 <div class="panel-header"><span class="eyebrow">Intelligence Feed</span></div>
                 <div id="chat-log" class="chat-log"></div>

@@ -14,6 +14,8 @@ const modeValue = document.getElementById("mode-value");
 const modeBadge = document.getElementById("mode-badge");
 const featureValue = document.getElementById("feature-value");
 const visionState = document.getElementById("vision-state");
+const topMicBtn = document.getElementById("top-mic-btn");
+const topTranscript = document.getElementById("voice-transcript-display");
 
 const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 const socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/chat`);
@@ -122,13 +124,42 @@ socket.addEventListener("message", (event) => {
     }
 
     if (data.type === "response" || data.type === "alert") {
-        appendMessage("assistant", data.message);
+        let msg = data.message;
+        
+        // Extract and render flowchart if exists
+        const mermaidMatch = msg.match(/```mermaid([\s\S]*?)```/);
+        if (mermaidMatch) {
+            const flowchartCode = mermaidMatch[1].trim();
+            renderFlowchart(flowchartCode);
+            // Remove the mermaid block so TTS doesn't read it
+            msg = msg.replace(/```mermaid[\s\S]*?```/g, " [A flowchart has been generated on your HUD] ");
+        }
+
+        appendMessage("assistant", msg);
         heroStatus.textContent = data.type === "alert" ? "Attention needed" : "Response ready";
-        heroDetail.textContent = data.message;
+        heroDetail.textContent = msg;
         featureValue.textContent = data.type === "alert" ? "Alert mode" : "Chat Ready";
-        speakText(data.message);
+        speakText(msg);
     }
 });
+
+async function renderFlowchart(code) {
+    try {
+        const overlay = document.getElementById("flowchart-overlay");
+        const container = document.getElementById("flowchart-render");
+        if(overlay && container) {
+            overlay.style.display = "flex";
+            const graphId = 'mermaid-' + Date.now();
+            mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+            const { svg } = await mermaid.render(graphId, code);
+            container.innerHTML = svg;
+        }
+    } catch(e) {
+        console.error("Mermaid render error:", e);
+        const container = document.getElementById("flowchart-render");
+        if(container) container.innerHTML = `<span style="color:var(--alert);">Failed to render flowchart: ${e}</span>`;
+    }
+}
 
 chatForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -149,60 +180,99 @@ if (SpeechRecognition) {
     recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = false;
-    recognition.lang = "en-US";
+    recognition.lang = "en-IN"; // Changed to en-IN for better 'sunn' detection
+
+    const restartRecognition = () => {
+        if (isListening) {
+            setTimeout(() => {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // Ignore if already started
+                }
+            }, 300);
+        }
+    };
 
     recognition.onstart = () => {
         isListening = true;
         micButton.textContent = "Stop Voice";
-        heroStatus.textContent = "KEVIN is listening";
-        heroDetail.textContent = "Speak naturally, I'm here.";
+        if(topMicBtn) topMicBtn.textContent = "MIC ACTIVE - CLICK TO STOP";
+        if(topTranscript) topTranscript.textContent = "LISTENING: Say 'Kevin' to start a command...";
+        heroStatus.textContent = "KEVIN is passively listening";
+        heroDetail.textContent = "Say 'Kevin' followed by your command.";
     };
 
     recognition.onend = () => {
-        // Automatically restart if we are still in listening mode
-        if (isListening) {
-            try {
-                recognition.start();
-            } catch (e) {
-                // Ignore if already started
-            }
-        } else {
-            micButton.textContent = "Start Voice";
-        }
+        restartRecognition();
     };
 
     recognition.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
-        if (event.error === "no-speech") {
-            // Keep going even if it's quiet
-            return;
-        }
-        if (isListening) {
-            setTimeout(() => {
-                try { recognition.start(); } catch(e) {}
-            }, 1000);
+        if (event.error === "not-allowed") {
+            isListening = false;
+            micButton.textContent = "Voice Blocked";
+        } else {
+            restartRecognition();
         }
     };
 
     recognition.onresult = (event) => {
-        const transcript = event.results[event.resultIndex][0].transcript;
-        if (transcript.trim().length > 1) {
-            sendMessage(transcript);
+        let rawTranscript = event.results[event.resultIndex][0].transcript;
+        let transcript = rawTranscript.trim().toLowerCase();
+        
+        if(topTranscript) {
+            topTranscript.textContent = "HEARD: " + rawTranscript;
+            // Clear it after 4 seconds
+            setTimeout(() => { 
+                if(topTranscript.textContent === "HEARD: " + rawTranscript) {
+                    topTranscript.textContent = "LISTENING: Say 'Kevin' to start a command...";
+                }
+            }, 4000);
         }
-    };
+        
+        // Wake Word Logic: Trigger on "kevin"
+        if (transcript.includes("kevin")) {
+            let command = transcript.replace(/kevin listen|kevin sunn|kevin sun|kevin/gi, "").trim();
+            if (command.length > 1) {
+                sendMessage(command);
+            } else {
+                sendMessage("hi");
+            }
+        }
+    // Try auto-starting recognition
+    setTimeout(() => {
+        if (!isListening) {
+            if(micButton) micButton.click();
+        }
+    }, 1000);
 
-    micButton.addEventListener("click", () => {
+    // Fallback: start on first click anywhere
+    document.body.addEventListener("click", () => {
+        if (!isListening) {
+            if(micButton) micButton.click();
+        }
+    }, { once: true });
+
+    const toggleMic = () => {
         if (isListening) {
             isListening = false;
             recognition.stop();
+            micButton.textContent = "Start Voice";
+            if(topMicBtn) topMicBtn.textContent = "START CAPTURING VOICE";
+            if(topTranscript) topTranscript.textContent = "MIC OFF";
             return;
         }
         isListening = true;
         recognition.start();
-    });
+    };
+
+    micButton.addEventListener("click", toggleMic);
+    if(topMicBtn) topMicBtn.addEventListener("click", toggleMic);
 } else {
     micButton.disabled = true;
     micButton.textContent = "Voice Unsupported";
+    if(topMicBtn) topMicBtn.textContent = "VOICE UNSUPPORTED";
 }
 
 function resizeVisionCanvases() {

@@ -23,6 +23,9 @@ let recognition = null;
 let socket = null;
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// Initialize Mermaid
+mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+
 // Initialization Boot Sequence
 async function bootSequence() {
     log("Initializing Neural OS...");
@@ -72,8 +75,32 @@ function initSocket() {
         } else if (data.type === "chat") {
             feed.append("assistant", data.content);
             if (speakResponses) speakText(data.content);
+            
+            // Flowchart detection logic
+            if (data.content.includes("```mermaid")) {
+                const mermaidMatch = data.content.match(/```mermaid([\s\S]*?)```/);
+                if (mermaidMatch && mermaidMatch[1]) {
+                    renderFlowchart(mermaidMatch[1].trim());
+                }
+            }
         }
     };
+
+    async function renderFlowchart(code) {
+        const overlay = document.getElementById("flowchart-overlay");
+        const renderArea = document.getElementById("flowchart-render");
+        
+        try {
+            log("Rendering tactical plan...");
+            const { svg } = await mermaid.render('mermaid-svg-' + Date.now(), code);
+            renderArea.innerHTML = svg;
+            overlay.style.display = "flex";
+            log("Plan displayed");
+        } catch (err) {
+            log(`Flowchart Error: ${err.message}`);
+            console.error(err);
+        }
+    }
 
     socket.onclose = () => {
         log("Link Lost. Re-establishing...");
